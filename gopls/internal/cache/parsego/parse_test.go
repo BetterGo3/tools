@@ -56,13 +56,9 @@ package p
 
 func parseInt(string) (int, error) { return 0, nil }
 
-func tryOK() int? {
-	v := parseInt("1")?
-	return v
-}
-
-func forceOK() int {
-	return tryOK()!
+func tryOK() int! {
+	v := parseInt("1")!.value
+	return v, nil
 }
 `
 	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
@@ -76,7 +72,6 @@ func forceOK() int {
 	var (
 		foundResultType bool
 		foundTryExpr    bool
-		foundForceExpr  bool
 	)
 	ast.Inspect(pgf.File, func(node ast.Node) bool {
 		switch node.(type) {
@@ -84,19 +79,14 @@ func forceOK() int {
 			foundResultType = true
 		case *ast.TryExpr:
 			foundTryExpr = true
-		case *ast.ForceExpr:
-			foundForceExpr = true
 		}
 		return true
 	})
 	if !foundResultType {
-		t.Fatalf("missing ast.ResultTypeExpr for T? result type")
+		t.Fatalf("missing ast.ResultTypeExpr for T! result type")
 	}
 	if !foundTryExpr {
-		t.Fatalf("missing ast.TryExpr for expr? usage")
-	}
-	if !foundForceExpr {
-		t.Fatalf("missing ast.ForceExpr for expr! usage")
+		t.Fatalf("missing ast.TryExpr for expr!.value usage")
 	}
 }
 
