@@ -90,6 +90,33 @@ func tryOK() int! {
 	}
 }
 
+func TestParseIfExpr(t *testing.T) {
+	const src = `
+package p
+
+func f() int {
+	return if true { 1 } else { 2 }
+}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var found bool
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		if _, ok := node.(*ast.IfExpr); ok {
+			found = true
+		}
+		return true
+	})
+	if !found {
+		t.Fatalf("missing ast.IfExpr")
+	}
+}
+
 func TestFixGoAndDefer(t *testing.T) {
 	var testCases = []struct {
 		source  string
