@@ -627,7 +627,8 @@ var actionMarkerFuncs = map[string]func(marker){
 	"rename":           actionMarkerFunc(renameMarker),
 	"renameerr":        actionMarkerFunc(renameErrMarker),
 	"selectionrange":   actionMarkerFunc(selectionRangeMarker),
-	"signature":        actionMarkerFunc(signatureMarker),
+	"signature":            actionMarkerFunc(signatureMarker),
+	"overloadsignatures": actionMarkerFunc(overloadSignaturesMarker),
 	"snippet":          actionMarkerFunc(snippetMarker),
 	"subtypes":         actionMarkerFunc(subtypesMarker),
 	"supertypes":       actionMarkerFunc(supertypesMarker),
@@ -2029,6 +2030,29 @@ func tokenMarker(mark marker, loc protocol.Location, tokenType, mod string) {
 	}
 	if tok.Mod != mod {
 		mark.errorf("token mod = %q, want %q", tok.Mod, mod)
+	}
+}
+
+func overloadSignaturesMarker(mark marker, src protocol.Location, labels ...string) {
+	got := mark.run.env.SignatureHelp(src)
+	var gotLabels []string
+	if got != nil {
+		for _, s := range got.Signatures {
+			gotLabels = append(gotLabels, s.Label)
+		}
+	}
+	if len(gotLabels) != len(labels) {
+		mark.errorf("signatureHelp = %v, want %d signatures %v", gotLabels, len(labels), labels)
+		return
+	}
+	want := append([]string(nil), labels...)
+	slices.Sort(want)
+	slices.Sort(gotLabels)
+	for i := range want {
+		if gotLabels[i] != want[i] {
+			mark.errorf("signatureHelp = %v, want %v", gotLabels, labels)
+			return
+		}
 	}
 }
 

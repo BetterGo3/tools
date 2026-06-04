@@ -23,7 +23,7 @@ import (
 
 // SignatureHelp returns information about the signature of the innermost
 // function call enclosing the position, or nil if there is none.
-func SignatureHelp(ctx context.Context, snapshot *cache.Snapshot, fh file.Handle, rng protocol.Range, context *protocol.SignatureHelpContext) (*protocol.SignatureInformation, error) {
+func SignatureHelp(ctx context.Context, snapshot *cache.Snapshot, fh file.Handle, rng protocol.Range, context *protocol.SignatureHelpContext) (*protocol.SignatureHelp, error) {
 	ctx, done := event.Start(ctx, "golang.SignatureHelp")
 	defer done()
 
@@ -91,6 +91,10 @@ loop:
 		return nil, nil
 	}
 
+	if overloads := typesinternal.OverloadsForExpr(info, fnval); len(overloads) > 1 {
+		return signatureHelpOverloads(ctx, snapshot, pkg, pgf.File, info, overloads, fnval, start, end, callExpr)
+	}
+
 	// Get the type information for the function being called.
 	var sig *types.Signature
 	if tv, ok := info.Types[fnval]; !ok {
@@ -116,19 +120,30 @@ loop:
 	if obj != nil && isBuiltin(obj) {
 		// Special handling for error.Error, which is the only builtin method.
 		if obj.Name() == "Error" {
-			return &protocol.SignatureInformation{
-				Label: "Error() string",
-				// TODO(skewb1k): move the docstring for error.Error to builtin.go and reuse it across all relevant LSP methods.
-				Documentation:   stringToSigInfoDocumentation("Error returns the error message.", snapshot.Options()),
-				Parameters:      nil,
-				ActiveParameter: nil,
+			return &protocol.SignatureHelp{
+				Signatures: []protocol.SignatureInformation{{
+					Label: "Error() string",
+					// TODO(skewb1k): move the docstring for error.Error to builtin.go and reuse it across all relevant LSP methods.
+					Documentation:   stringToSigInfoDocumentation("Error returns the error message.", snapshot.Options()),
+					Parameters:      nil,
+					ActiveParameter: nil,
+				}},
+				ActiveSignature: 0,
 			}, nil
 		}
 		s, err := NewBuiltinSignature(ctx, snapshot, obj.Name())
 		if err != nil {
 			return nil, err
 		}
-		return signatureInformation(s, snapshot.Options(), start, end, callExpr)
+		info, err := signatureInformation(s, snapshot.Options(), start, end, callExpr)
+		if err != nil {
+			return nil, err
+		}
+		return &protocol.SignatureHelp{
+			Signatures:      []protocol.SignatureInformation{*info},
+			ActiveSignature: 0,
+			ActiveParameter: info.ActiveParameter,
+		}, nil
 	}
 
 	mq := MetadataQualifierForFile(snapshot, pgf.File, pkg.Metadata())
@@ -153,7 +168,59 @@ loop:
 		return nil, err
 	}
 	s.name = name
-	return signatureInformation(s, snapshot.Options(), start, end, callExpr)
+	si, err := signatureInformation(s, snapshot.Options(), start, end, callExpr)
+	if err != nil {
+		return nil, err
+	}
+	return &protocol.SignatureHelp{
+		Signatures:      []protocol.SignatureInformation{*si},
+		ActiveSignature: 0,
+		ActiveParameter: si.ActiveParameter,
+	}, nil
+}
+
+func signatureHelpOverloads(ctx context.Context, snapshot *cache.Snapshot, pkg *cache.Package, file *ast.File, info *types.Info, overloads []*types.Func, fnval ast.Expr, start, end token.Pos, call *ast.CallExpr) (*protocol.SignatureHelp, error) {
+	var selected types.Object
+	switch t := fnval.(type) {
+	case *ast.Ident:
+		selected = info.ObjectOf(t)
+	case *ast.SelectorExpr:
+		selected = info.ObjectOf(t.Sel)
+	}
+
+	mq := MetadataQualifierForFile(snapshot, file, pkg.Metadata())
+	qual := typesinternal.FileQualifier(file, pkg.Types())
+
+	var sigs []protocol.SignatureInformation
+	var active uint32
+	for i, fn := range overloads {
+		if selected == fn {
+			active = uint32(i)
+		}
+		sig := fn.Type().(*types.Signature)
+		comment, err := HoverDocForObject(ctx, snapshot, pkg.FileSet(), fn)
+		if err != nil {
+			return nil, err
+		}
+		s, err := NewSignature(ctx, snapshot, pkg, sig, comment, qual, mq)
+		if err != nil {
+			return nil, err
+		}
+		s.name = fn.Name()
+		si, err := signatureInformation(s, snapshot.Options(), start, end, call)
+		if err != nil {
+			return nil, err
+		}
+		sigs = append(sigs, *si)
+	}
+	help := &protocol.SignatureHelp{
+		Signatures:      sigs,
+		ActiveSignature: active,
+	}
+	if len(sigs) > 0 {
+		help.ActiveParameter = sigs[active].ActiveParameter
+	}
+	return help, nil
 }
 
 func signatureInformation(sig *signature, options *settings.Options, start, end token.Pos, call *ast.CallExpr) (*protocol.SignatureInformation, error) {

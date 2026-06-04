@@ -283,6 +283,10 @@ Here is the list of supported action markers:
     signatureHelp at the given location should match the provided string, with
     the active parameter (an index) highlighted.
 
+  - overloadsignatures(location, label, ...label): specifies that
+    signatureHelp at the given location should list all of the given overload
+    signatures (order-independent).
+
   - snippet(location, string OR completionItem, snippet): executes a
     textDocument/completion request at the location, and searches for a result
     with label matching that its second argument, which may be a string literal
