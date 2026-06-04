@@ -147,6 +147,37 @@ func f(x int) string {
 	}
 }
 
+func TestParseDefaultArgs(t *testing.T) {
+	const src = `
+package p
+
+func f(a, b int, c int = 5, d int = 7) {}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var found bool
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		f, ok := node.(*ast.FuncDecl)
+		if !ok || f.Type.Params == nil {
+			return true
+		}
+		for _, field := range f.Type.Params.List {
+			if field.Default != nil {
+				found = true
+			}
+		}
+		return true
+	})
+	if !found {
+		t.Fatalf("missing ast.Field.Default")
+	}
+}
+
 func TestFixGoAndDefer(t *testing.T) {
 	var testCases = []struct {
 		source  string
