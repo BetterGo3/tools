@@ -28,7 +28,7 @@ func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHe
 		return nil, nil // empty result
 	}
 
-	info, err := golang.SignatureHelp(ctx, snapshot, fh, params.Range, params.Context)
+	help, err := golang.SignatureHelp(ctx, snapshot, fh, params.Range, params.Context)
 	if err != nil {
 		// TODO(rfindley): is this correct? Apparently, returning an error from
 		// signatureHelp is distracting in some editors, though I haven't confirmed
@@ -38,12 +38,5 @@ func (s *server) SignatureHelp(ctx context.Context, params *protocol.SignatureHe
 		event.Error(ctx, "signature help failed", err, label.Position.Of(params.Range.Start), label.Position.Of(params.Range.End))
 		return nil, nil
 	}
-	if info == nil {
-		return nil, nil
-	}
-	return &protocol.SignatureHelp{
-		Signatures:      []protocol.SignatureInformation{*info},
-		ActiveSignature: 0,
-		ActiveParameter: info.ActiveParameter,
-	}, nil
+	return help, nil
 }
