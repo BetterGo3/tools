@@ -117,6 +117,36 @@ func f() int {
 	}
 }
 
+func TestParseSwitchExpr(t *testing.T) {
+	const src = `
+package p
+
+func f(x int) string {
+	return switch x {
+	case 1: "one"
+	default: "other"
+	}
+}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var found bool
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		if _, ok := node.(*ast.SwitchExpr); ok {
+			found = true
+		}
+		return true
+	})
+	if !found {
+		t.Fatalf("missing ast.SwitchExpr")
+	}
+}
+
 func TestFixGoAndDefer(t *testing.T) {
 	var testCases = []struct {
 		source  string
