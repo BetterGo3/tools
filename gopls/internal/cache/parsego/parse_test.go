@@ -147,6 +147,31 @@ func f(x int) string {
 	}
 }
 
+func TestParseLambdaExpr(t *testing.T) {
+	const src = `
+package p
+
+var f func(int, int) int = (a, b) => a + b
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var found bool
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		if _, ok := node.(*ast.LambdaExpr); ok {
+			found = true
+		}
+		return true
+	})
+	if !found {
+		t.Fatalf("missing ast.LambdaExpr")
+	}
+}
+
 func TestParseDefaultArgs(t *testing.T) {
 	const src = `
 package p
