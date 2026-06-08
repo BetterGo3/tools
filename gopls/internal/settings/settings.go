@@ -1719,12 +1719,12 @@ func asStringSlice(value any) ([]string, error) {
 }
 
 func setEnum[S ~string](dest *S, value any, options ...S) ([]CounterPath, error) {
-	enum, err := asEnum(value, options...)
+	ev, err := asEnum(value, options...)
 	if err != nil {
 		return nil, err
 	}
-	*dest = enum
-	return []CounterPath{{string(enum)}}, nil
+	*dest = ev
+	return []CounterPath{{string(ev)}}, nil
 }
 
 func asEnum[S ~string](value any, options ...S) (S, error) {
