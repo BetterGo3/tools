@@ -172,6 +172,101 @@ var f func(int, int) int = (a, b) => a + b
 	}
 }
 
+func TestParseEnumDecl(t *testing.T) {
+	const src = `
+package p
+
+enum Color {
+	Red
+	Green
+	Blue(int)
+	Write { text string }
+}
+
+func f(c Color) int {
+	switch c {
+	case Red:
+		return 0
+	case Write { text }:
+		return len(text)
+	case Blue(n):
+		return n
+	}
+}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var (
+		foundEnum   bool
+		foundPattern bool
+	)
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		switch node.(type) {
+		case *ast.EnumDecl:
+			foundEnum = true
+		case *ast.EnumPatternExpr:
+			foundPattern = true
+		}
+		return true
+	})
+	if !foundEnum {
+		t.Fatalf("missing ast.EnumDecl")
+	}
+	if !foundPattern {
+		t.Fatalf("missing ast.EnumPatternExpr in switch case")
+	}
+}
+
+func TestParseNullableAndNullCond(t *testing.T) {
+	const src = `
+package p
+
+type T struct{ F int }
+
+func f(x int?) int {
+	if x != nil {
+		return *x
+	}
+	return 0
+}
+
+func g(p *T) int {
+	return p?.F
+}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var (
+		foundNullable bool
+		foundNullCond bool
+	)
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		switch node.(type) {
+		case *ast.NullableTypeExpr:
+			foundNullable = true
+		case *ast.NullCondExpr:
+			foundNullCond = true
+		}
+		return true
+	})
+	if !foundNullable {
+		t.Fatalf("missing ast.NullableTypeExpr")
+	}
+	if !foundNullCond {
+		t.Fatalf("missing ast.NullCondExpr")
+	}
+}
+
 func TestParseDefaultArgs(t *testing.T) {
 	const src = `
 package p

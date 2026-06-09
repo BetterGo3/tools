@@ -1605,7 +1605,9 @@ func (b *typeCheckBatch) checkPackage(ctx context.Context, fset *token.FileSet, 
 			FileVersions:    make(map[*ast.File]string),
 			FuncOverloads:   make(map[string][]*types.Func),
 			MethodOverloads: make(map[types.MethodOverloadKey][]*types.Func),
-			CallOverloads:   make(map[ast.Expr][]*types.Func),
+			CallOverloads:      make(map[ast.Expr][]*types.Func),
+			IndexOperatorCalls: make(map[ast.Expr]*ast.CallExpr),
+			IndexAssignCalls:   make(map[ast.Expr]*ast.CallExpr),
 		},
 	}
 

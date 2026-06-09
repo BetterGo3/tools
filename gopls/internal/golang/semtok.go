@@ -393,6 +393,37 @@ func (tv *tokenVisitor) inspect(n ast.Node) (descend bool) {
 		}
 	case *ast.BinaryExpr:
 		tv.token(n.OpPos, len(n.Op.String()), semtok.TokOperator)
+	case *ast.EnumDecl:
+		tv.token(n.Enum, len("enum"), semtok.TokKeyword)
+	case *ast.EnumPatternExpr:
+	case *ast.IfExpr:
+		tv.token(n.If, len("if"), semtok.TokKeyword)
+		pos := tv.findKeyword("else", n.Rbrace, n.ElseBody.Pos())
+		tv.token(pos, len("else"), semtok.TokKeyword)
+	case *ast.LambdaExpr:
+		tv.token(n.Arrow, len("=>"), semtok.TokOperator)
+	case *ast.NullCondExpr:
+		tv.token(n.QPos, len("?."), semtok.TokOperator)
+	case *ast.NullableTypeExpr:
+		tv.token(n.QPos, len("?"), semtok.TokOperator)
+	case *ast.ResultTypeExpr:
+		tv.token(n.Bang, len("!"), semtok.TokOperator)
+	case *ast.SwitchExpr:
+		tv.token(n.Switch, len("switch"), semtok.TokKeyword)
+	case *ast.SwitchExprClause:
+		iam := "case"
+		if n.Cases == nil {
+			iam = "default"
+		}
+		if n.Cases != nil {
+			pos := tv.findKeyword(iam, n.Cases[0].Pos(), n.Colon)
+			tv.token(pos, len(iam), semtok.TokKeyword)
+		} else {
+			pos := tv.findKeyword(iam, n.Colon-1, n.Colon)
+			tv.token(pos, len(iam), semtok.TokKeyword)
+		}
+	case *ast.TryExpr:
+		tv.token(n.Bang, len("!"), semtok.TokOperator)
 	case *ast.BlockStmt:
 	case *ast.BranchStmt:
 		tv.token(n.TokPos, len(n.Tok.String()), semtok.TokKeyword)
