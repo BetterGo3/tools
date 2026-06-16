@@ -27,6 +27,7 @@ const (
 	GOTO        = "goto"
 	IF          = "if"
 	IMPORT      = "import"
+	ENUM        = "enum"
 	INTERFACE   = "interface"
 	MAP         = "map"
 	PACKAGE     = "package"
@@ -64,7 +65,7 @@ func (c *completer) addKeywordCompletions() {
 	// get *ast.Idents at the file scope because non-keyword identifiers
 	// turn into *ast.BadDecl, not *ast.Ident.
 	if len(c.path) == 1 || is[*ast.File](c.path[1]) {
-		c.addKeywordItems(seen, stdScore, TYPE, CONST, VAR, FUNC, IMPORT)
+		c.addKeywordItems(seen, stdScore, TYPE, CONST, VAR, FUNC, ENUM, IMPORT)
 		return
 	} else if _, ok := c.path[0].(*ast.Ident); !ok {
 		// Otherwise only offer keywords if the client is completing an identifier.

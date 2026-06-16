@@ -48,6 +48,13 @@ func DocumentSymbols(ctx context.Context, snapshot *cache.Snapshot, fh file.Hand
 				}
 				symbols = append(symbols, fs)
 			}
+		case *ast.EnumDecl:
+			if decl.Name.Name == "_" {
+				continue
+			}
+			if es, err := enumSymbol(pgf.Mapper, pgf.Tok, decl); err == nil {
+				symbols = append(symbols, es)
+			}
 		case *ast.GenDecl:
 			for _, spec := range decl.Specs {
 				switch spec := spec.(type) {
@@ -132,6 +139,13 @@ func PackageSymbols(ctx context.Context, snapshot *cache.Snapshot, uri protocol.
 					} else {
 						symbols = append(symbols, toPackageSymbol(fidx, fs))
 					}
+				}
+			case *ast.EnumDecl:
+				if decl.Name.Name == "_" {
+					continue
+				}
+				if es, err := enumSymbol(pgf.Mapper, pgf.Tok, decl); err == nil {
+					symbols = append(symbols, toPackageSymbol(fidx, es))
 				}
 			case *ast.GenDecl:
 				for _, spec := range decl.Specs {
@@ -225,6 +239,42 @@ func typeSymbol(m *protocol.Mapper, tf *token.File, spec *ast.TypeSpec) (protoco
 		return protocol.DocumentSymbol{}, err
 	}
 	s.Kind, s.Detail, s.Children = typeDetails(m, tf, spec.Type)
+	return s, nil
+}
+
+func enumSymbol(m *protocol.Mapper, tf *token.File, decl *ast.EnumDecl) (protocol.DocumentSymbol, error) {
+	s := protocol.DocumentSymbol{
+		Name: decl.Name.Name,
+		Kind: protocol.Enum,
+	}
+	var err error
+	s.Range, err = m.NodeRange(tf, decl)
+	if err != nil {
+		return protocol.DocumentSymbol{}, err
+	}
+	s.SelectionRange, err = m.NodeRange(tf, decl.Name)
+	if err != nil {
+		return protocol.DocumentSymbol{}, err
+	}
+	if len(decl.Variants) > 0 {
+		s.Detail = "enum{...}"
+	} else {
+		s.Detail = "enum{}"
+	}
+	for _, v := range decl.Variants {
+		if v == nil || v.Name == nil {
+			continue
+		}
+		child := protocol.DocumentSymbol{
+			Name: v.Name.Name,
+			Kind: protocol.EnumMember,
+		}
+		if rng, err := m.NodeRange(tf, v.Name); err == nil {
+			child.Range = rng
+			child.SelectionRange = rng
+		}
+		s.Children = append(s.Children, child)
+	}
 	return s, nil
 }
 

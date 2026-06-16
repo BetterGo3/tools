@@ -410,17 +410,18 @@ func (tv *tokenVisitor) inspect(n ast.Node) (descend bool) {
 		tv.token(n.Bang, len("!"), semtok.TokOperator)
 	case *ast.SwitchExpr:
 		tv.token(n.Switch, len("switch"), semtok.TokKeyword)
-	case *ast.SwitchExprClause:
-		iam := "case"
-		if n.Cases == nil {
-			iam = "default"
-		}
-		if n.Cases != nil {
-			pos := tv.findKeyword(iam, n.Cases[0].Pos(), n.Colon)
-			tv.token(pos, len(iam), semtok.TokKeyword)
-		} else {
-			pos := tv.findKeyword(iam, n.Colon-1, n.Colon)
-			tv.token(pos, len(iam), semtok.TokKeyword)
+		for _, clause := range n.Body {
+			iam := "case"
+			if clause.Cases == nil {
+				iam = "default"
+			}
+			if clause.Cases != nil {
+				pos := tv.findKeyword(iam, clause.Cases[0].Pos(), clause.Colon)
+				tv.token(pos, len(iam), semtok.TokKeyword)
+			} else {
+				pos := tv.findKeyword(iam, clause.Colon-1, clause.Colon)
+				tv.token(pos, len(iam), semtok.TokKeyword)
+			}
 		}
 	case *ast.TryExpr:
 		tv.token(n.Bang, len("!"), semtok.TokOperator)
@@ -899,6 +900,26 @@ func (tv *tokenVisitor) unkIdent(id *ast.Ident) (semtok.Type, []semtok.Modifier)
 		return semtok.TokVariable, def
 	case *ast.FuncDecl:
 		return semtok.TokFunction, def
+	case *ast.LambdaExpr:
+		if slices.Contains(parent.Params, id) {
+			return semtok.TokVariable, def
+		}
+		return semtok.TokVariable, nil
+	case *ast.EnumPatternExpr:
+		if id == parent.Variant {
+			return semtok.TokVariable, nil
+		}
+		if slices.Contains(parent.Args, id) {
+			return semtok.TokVariable, def
+		}
+		for _, f := range parent.Fields {
+			for _, name := range f.Names {
+				if name == id {
+					return semtok.TokVariable, def
+				}
+			}
+		}
+		return semtok.TokVariable, nil
 	default:
 		tv.errorf("%T unexpected: %s %s%q", parent, id.Name, tv.strStack(), tv.srcLine(id))
 	}

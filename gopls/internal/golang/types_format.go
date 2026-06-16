@@ -157,17 +157,18 @@ func formatFieldList(ctx context.Context, fset *token.FileSet, list *ast.FieldLi
 			continue
 		}
 		typ := replacer.Replace(b.String())
+		defaultSuffix := formatDefaultArg(ctx, fset, cfg, p.Default)
 		if len(p.Names) == 0 {
-			result = append(result, typ)
+			result = append(result, typ+defaultSuffix)
 		}
 		for _, name := range p.Names {
 			if name.Name != "" {
 				if i == 0 {
 					writeResultParens = true
 				}
-				result = append(result, fmt.Sprintf("%s %s", name.Name, typ))
+				result = append(result, fmt.Sprintf("%s %s%s", name.Name, typ, defaultSuffix))
 			} else {
-				result = append(result, typ)
+				result = append(result, typ+defaultSuffix)
 			}
 		}
 	}
@@ -175,6 +176,63 @@ func formatFieldList(ctx context.Context, fset *token.FileSet, list *ast.FieldLi
 		result[len(result)-1] = strings.Replace(result[len(result)-1], "[]", "...", 1)
 	}
 	return result, writeResultParens
+}
+
+func formatDefaultArg(ctx context.Context, fset *token.FileSet, cfg printer.Config, def ast.Expr) string {
+	if def == nil {
+		return ""
+	}
+	b := &bytes.Buffer{}
+	if err := cfg.Fprint(b, fset, def); err != nil {
+		event.Error(ctx, "error printing default argument", err)
+		return ""
+	}
+	return " = " + b.String()
+}
+
+// paramsFromFuncDecl returns formatted parameter strings from a function
+// declaration when available, including default argument values from the AST.
+func paramsFromFuncDecl(ctx context.Context, fset *token.FileSet, decl *ast.FuncDecl, variadic bool) []string {
+	if decl == nil || decl.Type == nil || decl.Type.Params == nil {
+		return nil
+	}
+	params, _ := formatFieldList(ctx, fset, decl.Type.Params, variadic)
+	return params
+}
+
+// funcDeclFor returns the *ast.FuncDecl for obj when it is declared in file.
+func funcDeclFor(file *ast.File, obj types.Object) *ast.FuncDecl {
+	if obj == nil || !obj.Pos().IsValid() {
+		return nil
+	}
+	pos := obj.Pos()
+	for _, decl := range file.Decls {
+		fd, ok := decl.(*ast.FuncDecl)
+		if !ok || fd.Name == nil {
+			continue
+		}
+		if fd.Name.Pos() == pos {
+			return fd
+		}
+	}
+	return nil
+}
+
+// applyASTParamDefaults replaces sig.params with AST-based parameter strings
+// when the function declaration is available, so default argument values appear
+// in signature help and hover.
+func applyASTParamDefaults(ctx context.Context, fset *token.FileSet, sig *signature, fn types.Object, pkg *cache.Package, variadic bool) {
+	if fn == nil {
+		return
+	}
+	for _, pgf := range pkg.CompiledGoFiles() {
+		if decl := funcDeclFor(pgf.File, fn); decl != nil {
+			if params := paramsFromFuncDecl(ctx, fset, decl, variadic); len(params) > 0 {
+				sig.params = params
+			}
+			return
+		}
+	}
 }
 
 // NewSignature returns formatted signature for a types.Signature struct.
@@ -491,6 +549,18 @@ func qualifyTypeExpr(expr ast.Expr, qf func(string) string) ast.Expr {
 			Struct:     expr.Struct,
 			Fields:     qualifyFieldList(expr.Fields, qf),
 			Incomplete: expr.Incomplete,
+		}
+
+	case *ast.ResultTypeExpr:
+		return &ast.ResultTypeExpr{
+			X:    qualifyTypeExpr(expr.X, qf),
+			Bang: expr.Bang,
+		}
+
+	case *ast.NullableTypeExpr:
+		return &ast.NullableTypeExpr{
+			X:    qualifyTypeExpr(expr.X, qf),
+			QPos: expr.QPos,
 		}
 
 	default:
