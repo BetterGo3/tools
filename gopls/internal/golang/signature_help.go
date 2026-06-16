@@ -167,6 +167,9 @@ loop:
 	if err != nil {
 		return nil, err
 	}
+	if obj != nil {
+		applyASTParamDefaults(ctx, pkg.FileSet(), s, obj, pkg, sig.Variadic())
+	}
 	s.name = name
 	si, err := signatureInformation(s, snapshot.Options(), start, end, callExpr)
 	if err != nil {
@@ -206,6 +209,7 @@ func signatureHelpOverloads(ctx context.Context, snapshot *cache.Snapshot, pkg *
 		if err != nil {
 			return nil, err
 		}
+		applyASTParamDefaults(ctx, pkg.FileSet(), s, fn, pkg, sig.Variadic())
 		s.name = fn.Name()
 		si, err := signatureInformation(s, snapshot.Options(), start, end, call)
 		if err != nil {
