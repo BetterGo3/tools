@@ -1,0 +1,20 @@
+Signature help shows unqualified enum default argument values.
+
+-- flags --
+-ignore_extra_diags
+
+-- args.go --
+package fork
+
+enum Mode {
+	Read
+	Write
+}
+
+func open(path string, mode Mode = Read) Mode {
+	return mode
+}
+
+func _() {
+	open("x") //@signature("(", "open(path string, mode Mode = Read) Mode", -1)
+}
