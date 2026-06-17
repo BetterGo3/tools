@@ -21,6 +21,7 @@ import (
 	"golang.org/x/tools/gopls/internal/file"
 	"golang.org/x/tools/gopls/internal/protocol"
 	"golang.org/x/tools/gopls/internal/util/bug"
+	"golang.org/x/tools/go/ast/inspector"
 	"golang.org/x/tools/internal/astutil"
 	"golang.org/x/tools/internal/event"
 )
@@ -163,6 +164,14 @@ func Definition(ctx context.Context, snapshot *cache.Snapshot, fh file.Handle, r
 				}
 			}
 		}
+	}
+
+	// Index operator overload: go-to-def on `[`/`]` jumps to func [](...) or func []=(...).
+	if locs, err := indexOperatorDefinition(ctx, snapshot, pkg, cur, start, end); locs != nil || err != nil {
+		return locs, err
+	}
+	if cursorOnIndexBracketsInTree(cur, start, end) {
+		return nil, nil
 	}
 
 	// The general case: the cursor is on (or near) an identifier.
@@ -468,4 +477,103 @@ func nonGoDefinition(ctx context.Context, snapshot *cache.Snapshot, pkg *cache.P
 	// This may be reached for functions that aren't implemented
 	// in assembly (e.g. compiler intrinsics like getg).
 	return nil, fmt.Errorf("can't find non-Go definition of %s", symbol)
+}
+
+func indexOperatorDefinition(ctx context.Context, snapshot *cache.Snapshot, pkg *cache.Package, cur inspector.Cursor, start, end token.Pos) ([]protocol.Location, error) {
+	info := pkg.TypesInfo()
+	if info == nil {
+		return nil, nil
+	}
+
+	for c := range cur.Enclosing() {
+		assign, ok := c.Node().(*ast.AssignStmt)
+		if !ok || len(assign.Lhs) != 1 {
+			continue
+		}
+		lhs := assign.Lhs[0]
+		if !cursorOnIndexBrackets(start, end, lhs) {
+			continue
+		}
+		if call, ok := info.IndexAssignCalls[lhs]; ok {
+			return definitionForOperatorCall(ctx, snapshot, pkg, info, call)
+		}
+	}
+
+	for c := range cur.Enclosing() {
+		expr, ok := indexExprNode(c.Node())
+		if !ok || !cursorOnIndexBrackets(start, end, expr) {
+			continue
+		}
+		if call, ok := info.IndexOperatorCalls[expr]; ok {
+			return definitionForOperatorCall(ctx, snapshot, pkg, info, call)
+		}
+		if call, ok := info.IndexAssignCalls[expr]; ok {
+			return definitionForOperatorCall(ctx, snapshot, pkg, info, call)
+		}
+	}
+	return nil, nil
+}
+
+func indexExprNode(n ast.Node) (ast.Expr, bool) {
+	switch n := n.(type) {
+	case *ast.IndexExpr:
+		return n, true
+	case *ast.IndexListExpr:
+		return n, true
+	default:
+		return nil, false
+	}
+}
+
+func cursorOnIndexBrackets(start, end token.Pos, e ast.Expr) bool {
+	switch e := e.(type) {
+	case *ast.IndexExpr:
+		if bracketSelected(start, end, e.Lbrack) || bracketSelected(start, end, e.Rbrack) {
+			return true
+		}
+	case *ast.IndexListExpr:
+		if bracketSelected(start, end, e.Lbrack) || bracketSelected(start, end, e.Rbrack) {
+			return true
+		}
+	}
+	return false
+}
+
+func bracketSelected(start, end, bracket token.Pos) bool {
+	if !bracket.IsValid() {
+		return false
+	}
+	return start >= bracket && end <= bracket+1
+}
+
+func definitionForOperatorCall(ctx context.Context, snapshot *cache.Snapshot, pkg *cache.Package, info *types.Info, call *ast.CallExpr) ([]protocol.Location, error) {
+	if call == nil {
+		return nil, nil
+	}
+	var obj types.Object
+	switch fun := call.Fun.(type) {
+	case *ast.Ident:
+		obj = info.ObjectOf(fun)
+	case *ast.SelectorExpr:
+		obj = info.ObjectOf(fun.Sel)
+	default:
+		return nil, nil
+	}
+	if obj == nil {
+		return nil, nil
+	}
+	loc, err := ObjectLocation(ctx, pkg.FileSet(), snapshot, obj)
+	if err != nil {
+		return nil, err
+	}
+	return []protocol.Location{loc}, nil
+}
+
+func cursorOnIndexBracketsInTree(cur inspector.Cursor, start, end token.Pos) bool {
+	for c := range cur.Enclosing() {
+		if expr, ok := indexExprNode(c.Node()); ok {
+			return cursorOnIndexBrackets(start, end, expr)
+		}
+	}
+	return false
 }

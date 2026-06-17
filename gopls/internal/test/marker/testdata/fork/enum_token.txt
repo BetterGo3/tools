@@ -1,0 +1,20 @@
+Semantic tokens for fork enum syntax.
+
+-- settings.json --
+{"semanticTokens": true}
+
+-- flags --
+-ignore_extra_diags
+
+-- enum.go --
+package fork
+
+enum Color { //@ token("enum", "keyword", ""), token("Color", "enum", "definition")
+	Red //@ token("Red", "enumMember", "definition")
+	Green
+	Blue(int)
+}
+
+func f() {
+	_ = Red //@ token("Red", "enumMember", "readonly")
+}

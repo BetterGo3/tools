@@ -1,0 +1,15 @@
+Signature help shows default argument values from the AST.
+
+-- flags --
+-ignore_extra_diags
+
+-- args.go --
+package fork
+
+func greet(name string, greeting string = "hello") string {
+	return greeting + " " + name
+}
+
+func _() {
+	greet("x") //@signature("(", "greet(name string, greeting string = \"hello\") string", -1)
+}
