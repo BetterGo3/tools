@@ -45,7 +45,9 @@ func use(v *Vec) {
 		IndexOperatorCalls: make(map[ast.Expr]*ast.CallExpr),
 		IndexAssignCalls:   make(map[ast.Expr]*ast.CallExpr),
 	}
-	if _, err := types.Config{IgnoreFuncBodies: false}.Check("p", fset, []*ast.File{f}, info); err != nil {
+	conf := types.Config{IgnoreFuncBodies: false}
+	_, err = conf.Check("p", fset, []*ast.File{f}, info)
+	if err != nil {
 		t.Fatalf("typecheck: %v", err)
 	}
 

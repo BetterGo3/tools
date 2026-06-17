@@ -1,7 +1,7 @@
 Semantic tokens for fork enum syntax.
 
 -- settings.json --
-{"semanticTokens": true}
+{"semanticTokens": true, "analyses": {"unusedfunc": false, "staticcheck": false, "printf": false, "nilness": false, "unusedwrite": false, "yield": false}, "staticcheck": false}
 
 -- flags --
 -ignore_extra_diags
