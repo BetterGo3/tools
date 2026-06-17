@@ -1272,3 +1272,18 @@ func relPathExcludedByFilter(path string, pathIncluded func(string) bool) bool {
 	path = strings.TrimPrefix(filepath.ToSlash(path), "/")
 	return !pathIncluded(path)
 }
+
+// uriExcludedByDirectoryFilters reports whether uri is excluded by the folder's
+// directoryFilters. Open files in excluded directories must not cause gopls to
+// create additional views (e.g. the std module under GOROOT/go/src).
+func uriExcludedByDirectoryFilters(folder *Folder, uri protocol.DocumentURI) bool {
+	if folder == nil || len(folder.Options.DirectoryFilters) == 0 {
+		return false
+	}
+	folderDir := folder.Dir.Path()
+	if !pathutil.InDir(folderDir, uri.Path()) {
+		return false
+	}
+	rel := strings.TrimPrefix(uri.Path(), folderDir)
+	return relPathExcludedByFilter(rel, PathIncludeFunc(folder.Options.DirectoryFilters))
+}
