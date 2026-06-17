@@ -90,6 +90,64 @@ func tryOK() int! {
 	}
 }
 
+func TestParseForceExpr(t *testing.T) {
+	const src = `
+package p
+
+func parseInt(string) (int, error) { return 0, nil }
+
+func forceStmt() int! {
+	parseInt("1")!
+	return 0, nil
+}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var foundForceExpr bool
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		if _, ok := node.(*ast.ForceExpr); ok {
+			foundForceExpr = true
+		}
+		return true
+	})
+	if !foundForceExpr {
+		t.Fatalf("missing ast.ForceExpr for standalone expr! statement")
+	}
+}
+
+func TestParseOperatorFuncDecl(t *testing.T) {
+	const src = `
+package p
+
+type Vec struct { data []float64 }
+
+func [](v *Vec, i int) float64 { return v.data[i] }
+func []=(v *Vec, i int, x float64) { v.data[i] = x }
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var names []string
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		if fd, ok := node.(*ast.FuncDecl); ok && fd.Name != nil {
+			names = append(names, fd.Name.Name)
+		}
+		return true
+	})
+	if !slices.Contains(names, "[]") || !slices.Contains(names, "[]=") {
+		t.Fatalf("missing operator func decls, got %v", names)
+	}
+}
+
 func TestParseIfExpr(t *testing.T) {
 	const src = `
 package p

@@ -21,8 +21,11 @@ cd C:\Users\pc\MyCodeOtherC\go\src
 
 ## Build gopls
 
+Requires a rebuilt fork GOROOT (`go/parser`, `go/types` with enum/index-operator fixes). Set `GO111MODULE=on` in the gopls module.
+
 ```powershell
 cd C:\Users\pc\MyCodeOtherC\_LocalRepos\go_tools\gopls
+$env:GO111MODULE = "on"
 go build -o "$env:GOPATH\bin\gopls.exe" .
 ```
 
@@ -30,11 +33,13 @@ Point Cursor/VS Code at `$GOPATH\bin\gopls.exe` and set `GOROOT` + `GOEXPERIMENT
 
 ## Tests (fork syntax)
 
-Parse and overload typecheck:
+Parse (fork AST nodes, operator func decls, `ForceExpr`) and overload typecheck:
 
 ```powershell
 cd C:\Users\pc\MyCodeOtherC\_LocalRepos\go_tools\gopls
-go test ./internal/cache/parsego/... ./internal/cache/ -run "TestOverload" -count=1
+$env:GO111MODULE = "on"
+go test ./internal/cache/parsego/... -run "TestParse" -count=1
+go test ./internal/cache/ -run "TestOverload" -count=1
 ```
 
 Index operator go-to-def unit test:
@@ -43,11 +48,13 @@ Index operator go-to-def unit test:
 go test ./internal/golang/ -run TestIndexOperatorDefinition -count=1 -v
 ```
 
-Fork marker tests (enum tokens/symbols, index `[]` go-to-def, default-arg signatures):
+Fork marker tests (enum tokens/symbols, default-arg signatures):
 
 ```powershell
 go test ./internal/test/marker -run Test/fork -count=1 -v
 ```
+
+Index-operator go-to-def is covered by the unit test above (not a marker test; SSA analyzers panic on overloaded `[]`).
 
 Broader gopls golang package tests:
 

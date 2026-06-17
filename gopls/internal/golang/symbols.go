@@ -266,8 +266,9 @@ func enumSymbol(m *protocol.Mapper, tf *token.File, decl *ast.EnumDecl) (protoco
 			continue
 		}
 		child := protocol.DocumentSymbol{
-			Name: v.Name.Name,
-			Kind: protocol.EnumMember,
+			Name:   v.Name.Name,
+			Kind:   protocol.EnumMember,
+			Detail: "enumMember",
 		}
 		if rng, err := m.NodeRange(tf, v.Name); err == nil {
 			child.Range = rng

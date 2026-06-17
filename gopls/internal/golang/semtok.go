@@ -425,6 +425,8 @@ func (tv *tokenVisitor) inspect(n ast.Node) (descend bool) {
 		}
 	case *ast.TryExpr:
 		tv.token(n.Bang, len("!"), semtok.TokOperator)
+	case *ast.ForceExpr:
+		tv.token(n.Bang, len("!"), semtok.TokOperator)
 	case *ast.BlockStmt:
 	case *ast.BranchStmt:
 		tv.token(n.TokPos, len(n.Tok.String()), semtok.TokKeyword)
@@ -833,8 +835,10 @@ func (tv *tokenVisitor) unkIdent(id *ast.Ident) (semtok.Type, []semtok.Modifier)
 	case *ast.BinaryExpr, *ast.UnaryExpr, *ast.ParenExpr, *ast.StarExpr,
 		*ast.IncDecStmt, *ast.SliceExpr, *ast.ExprStmt, *ast.IndexExpr,
 		*ast.ReturnStmt, *ast.ChanType, *ast.SendStmt,
-		*ast.ForStmt,      // possibly incomplete
-		*ast.IfStmt,       /* condition */
+		*ast.ForStmt, // possibly incomplete
+		*ast.IfStmt,  /* condition */
+		*ast.IfExpr,
+		*ast.SwitchExpr,
 		*ast.KeyValueExpr, // either key or value
 		*ast.IndexListExpr:
 		return semtok.TokVariable, nil
@@ -956,6 +960,13 @@ func (tv *tokenVisitor) unkIdent(id *ast.Ident) (semtok.Type, []semtok.Modifier)
 			}
 		}
 		return semtok.TokVariable, nil
+	case *ast.EnumDecl:
+		for _, v := range parent.Variants {
+			if v != nil && v.Name == id {
+				return semtok.TokEnumMember, def
+			}
+		}
+		return semtok.TokEnum, def
 	default:
 		tv.errorf("%T unexpected: %s %s%q", parent, id.Name, tv.strStack(), tv.srcLine(id))
 	}

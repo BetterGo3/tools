@@ -20,5 +20,5 @@ func _() {}
 
 -- @want --
 Color "enum{...}" +3 lines
-Green "enumMember"
-Red "enumMember"
+Color.Green "enumMember"
+Color.Red "enumMember"
