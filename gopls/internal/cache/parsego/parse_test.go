@@ -230,6 +230,25 @@ var f func(int, int) int = (a, b) => a + b
 	}
 }
 
+func TestParseUnparenthesizedLambdaInCall(t *testing.T) {
+	const src = `
+package p
+
+import "linq"
+
+func f(nums []int) {
+	_ = nums.Select(n => n + 1).ToList()
+}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+}
+
 func TestParseEnumDecl(t *testing.T) {
 	const src = `
 package p
