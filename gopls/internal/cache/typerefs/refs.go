@@ -582,6 +582,51 @@ func visitExpr(expr ast.Expr, f refVisitor) {
 	case *ast.ChanType:
 		visitExpr(n.Value, f)
 
+	// Go fork extension syntax (result types, force/try, etc.)
+	case *ast.ResultTypeExpr:
+		visitExpr(n.X, f)
+
+	case *ast.TryExpr:
+		visitExpr(n.X, f)
+
+	case *ast.NullableTypeExpr:
+		visitExpr(n.X, f)
+
+	case *ast.NullCondExpr:
+		visitExpr(n.X, f)
+
+	case *ast.ForceExpr:
+		visitExpr(n.X, f)
+
+	case *ast.IfExpr:
+		visitExpr(n.Cond, f)
+		visitExpr(n.Then, f)
+		visitExpr(n.ElseBody, f)
+
+	case *ast.SwitchExpr:
+		if n.Tag != nil {
+			visitExpr(n.Tag, f)
+		}
+		for _, clause := range n.Body {
+			visitExprList(clause.Cases, f)
+			visitExpr(clause.Body, f)
+		}
+
+	case *ast.LambdaExpr:
+		for _, id := range n.Params {
+			f(id.Name, "")
+		}
+		visitExpr(n.Body, f)
+
+	case *ast.EnumPatternExpr:
+		f(n.Variant.Name, "")
+		for _, id := range n.Args {
+			f(id.Name, "")
+		}
+		for _, field := range n.Fields {
+			visitExpr(field.Type, f)
+		}
+
 	case *ast.BadExpr:
 		// nothing to do
 
