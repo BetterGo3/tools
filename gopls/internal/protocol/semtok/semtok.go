@@ -39,6 +39,8 @@ const (
 	TokType      Type = "type"          // for a type name (plus other uses)
 	TokTypeParam Type = "typeParameter" // for a type parameter
 	TokVariable  Type = "variable"      // for a var or const
+	TokEnum      Type = "enum"          // for an enum type name
+	TokEnumMember Type = "enumMember"   // for an enum variant
 	// The section below defines a subset of token types in standard token types
 	// that gopls does not use.
 	//
@@ -46,8 +48,6 @@ const (
 	// gopls/doc/features/passive.md#semantic-tokens.
 	// TokClass      Type = "class"
 	// TokDecorator  Type = "decorator"
-	// TokEnum       Type = "enum"
-	// TokEnumMember Type = "enumMember"
 	// TokEvent      Type = "event"
 	// TokInterface  Type = "interface"
 	// TokModifier   Type = "modifier"
@@ -62,6 +62,8 @@ var Types = []Type{
 	TokTypeParam,
 	TokParameter,
 	TokProperty,
+	TokEnum,
+	TokEnumMember,
 	TokVariable,
 	TokFunction,
 	TokMethod,

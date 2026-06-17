@@ -1,0 +1,24 @@
+Fork enum declarations appear in document symbols.
+
+-- settings.json --
+{"analyses": {"unusedfunc": false}}
+
+-- flags --
+-ignore_extra_diags
+
+-- enum.go --
+package fork
+
+enum Color {
+	Red
+	Green
+}
+
+func _() {}
+
+//@symbol(want)
+
+-- @want --
+Color "enum{...}" +3 lines
+Green "enumMember"
+Red "enumMember"

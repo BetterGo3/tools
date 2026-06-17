@@ -617,6 +617,9 @@ func (tv *tokenVisitor) appendObjectModifiers(mods []semtok.Modifier, obj types.
 		return semtok.TokFunction, mods
 
 	case *types.Func:
+		if _, ok := enumVariant(obj); ok {
+			return semtok.TokEnumMember, mods
+		}
 		if obj.Signature().Recv() != nil {
 			return semtok.TokMethod, mods
 		} else {
@@ -624,12 +627,19 @@ func (tv *tokenVisitor) appendObjectModifiers(mods []semtok.Modifier, obj types.
 		}
 
 	case *types.TypeName:
+		if _, ok := types.AsEnum(obj.Type()); ok {
+			return semtok.TokEnum, mods
+		}
 		if is[*types.TypeParam](types.Unalias(obj.Type())) {
 			return semtok.TokTypeParam, mods
 		}
 		return semtok.TokType, mods
 
 	case *types.Const:
+		if _, ok := enumVariant(obj); ok {
+			mods = append(mods, semtok.ModReadonly)
+			return semtok.TokEnumMember, mods
+		}
 		mods = append(mods, semtok.ModReadonly)
 		return semtok.TokVariable, mods
 
@@ -655,11 +665,37 @@ func (tv *tokenVisitor) appendObjectModifiers(mods []semtok.Modifier, obj types.
 	panic(obj)
 }
 
+// enumVariant reports whether obj is an enum variant constructor or unit constant.
+func enumVariant(obj types.Object) (*types.Enum, bool) {
+	name := obj.Name()
+	var hint types.Type
+	switch obj := obj.(type) {
+	case *types.Const:
+		hint = obj.Type()
+	case *types.Func:
+		if obj.Signature().Recv() != nil || obj.Signature().Results().Len() != 1 {
+			return nil, false
+		}
+		hint = obj.Signature().Results().At(0).Type()
+	default:
+		return nil, false
+	}
+	e, ok := types.AsEnum(hint)
+	if !ok || e.Scope() == nil || e.Scope().Lookup(name) != obj {
+		return nil, false
+	}
+	return e, true
+}
+
 // appendTypeModifiers appends optional modifiers that describe the top-level
 // type constructor of t: "pointer", "map", etc.
 func appendTypeModifiers(mods []semtok.Modifier, t types.Type) []semtok.Modifier {
 	// For a type parameter, don't report "interface".
 	if is[*types.TypeParam](types.Unalias(t)) {
+		return mods
+	}
+
+	if _, ok := types.AsEnum(types.Unalias(t)); ok {
 		return mods
 	}
 
