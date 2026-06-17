@@ -559,6 +559,9 @@ checkFiles:
 		if folder == nil || !folder.Options.ZeroConfig {
 			continue // only guess views for open files
 		}
+		if uriExcludedByDirectoryFilters(folder, uri) {
+			continue // excluded paths must not spawn views (e.g. GOROOT std module)
+		}
 		fh, err := fs.ReadFile(ctx, uri)
 		if err != nil {
 			return nil, err
