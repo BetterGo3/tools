@@ -392,6 +392,30 @@ func walk(v *visitor, ek edge.Kind, index int, node ast.Node) {
 			}
 		}
 
+	case *ast.StructDecl:
+		if n.Doc != nil {
+			walk(v, edge.Invalid, -1, n.Doc)
+		}
+		walk(v, edge.Invalid, -1, n.Name)
+		if n.TypeParams != nil {
+			walk(v, edge.Invalid, -1, n.TypeParams)
+		}
+		if n.Fields != nil {
+			walk(v, edge.Invalid, -1, n.Fields)
+		}
+
+	case *ast.InterfaceDecl:
+		if n.Doc != nil {
+			walk(v, edge.Invalid, -1, n.Doc)
+		}
+		walk(v, edge.Invalid, -1, n.Name)
+		if n.TypeParams != nil {
+			walk(v, edge.Invalid, -1, n.TypeParams)
+		}
+		if n.Methods != nil {
+			walk(v, edge.Invalid, -1, n.Methods)
+		}
+
 	case *ast.File:
 		if n.Doc != nil {
 			walk(v, edge.File_Doc, -1, n.Doc)
