@@ -55,6 +55,20 @@ func DocumentSymbols(ctx context.Context, snapshot *cache.Snapshot, fh file.Hand
 			if es, err := enumSymbol(pgf.Mapper, pgf.Tok, decl); err == nil {
 				symbols = append(symbols, es)
 			}
+		case *ast.StructDecl:
+			if decl.Name.Name == "_" {
+				continue
+			}
+			if ts, err := typeSymbol(pgf.Mapper, pgf.Tok, decl.AsTypeSpec()); err == nil {
+				symbols = append(symbols, ts)
+			}
+		case *ast.InterfaceDecl:
+			if decl.Name.Name == "_" {
+				continue
+			}
+			if ts, err := typeSymbol(pgf.Mapper, pgf.Tok, decl.AsTypeSpec()); err == nil {
+				symbols = append(symbols, ts)
+			}
 		case *ast.GenDecl:
 			for _, spec := range decl.Specs {
 				switch spec := spec.(type) {
@@ -146,6 +160,22 @@ func PackageSymbols(ctx context.Context, snapshot *cache.Snapshot, uri protocol.
 				}
 				if es, err := enumSymbol(pgf.Mapper, pgf.Tok, decl); err == nil {
 					symbols = append(symbols, toPackageSymbol(fidx, es))
+				}
+			case *ast.StructDecl:
+				if decl.Name.Name == "_" {
+					continue
+				}
+				if ts, err := typeSymbol(pgf.Mapper, pgf.Tok, decl.AsTypeSpec()); err == nil {
+					typeSymbolToIdx[ts.Name] = len(symbols)
+					symbols = append(symbols, toPackageSymbol(fidx, ts))
+				}
+			case *ast.InterfaceDecl:
+				if decl.Name.Name == "_" {
+					continue
+				}
+				if ts, err := typeSymbol(pgf.Mapper, pgf.Tok, decl.AsTypeSpec()); err == nil {
+					typeSymbolToIdx[ts.Name] = len(symbols)
+					symbols = append(symbols, toPackageSymbol(fidx, ts))
 				}
 			case *ast.GenDecl:
 				for _, spec := range decl.Specs {

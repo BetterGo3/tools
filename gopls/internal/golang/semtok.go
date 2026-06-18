@@ -395,6 +395,10 @@ func (tv *tokenVisitor) inspect(n ast.Node) (descend bool) {
 		tv.token(n.OpPos, len(n.Op.String()), semtok.TokOperator)
 	case *ast.EnumDecl:
 		tv.token(n.Enum, len("enum"), semtok.TokKeyword)
+	case *ast.StructDecl:
+		tv.token(n.Struct, len("struct"), semtok.TokKeyword)
+	case *ast.InterfaceDecl:
+		tv.token(n.Interface, len("interface"), semtok.TokKeyword)
 	case *ast.EnumPatternExpr:
 	case *ast.IfExpr:
 		tv.token(n.If, len("if"), semtok.TokKeyword)
@@ -967,6 +971,14 @@ func (tv *tokenVisitor) unkIdent(id *ast.Ident) (semtok.Type, []semtok.Modifier)
 			}
 		}
 		return semtok.TokEnum, def
+	case *ast.StructDecl:
+		if id == parent.Name {
+			return semtok.TokType, def
+		}
+	case *ast.InterfaceDecl:
+		if id == parent.Name {
+			return semtok.TokType, def
+		}
 	default:
 		tv.errorf("%T unexpected: %s %s%q", parent, id.Name, tv.strStack(), tv.srcLine(id))
 	}
