@@ -1,0 +1,9 @@
+package a
+
+struct Person {
+	Name string
+}
+
+interface Stringer {
+	String() string
+}

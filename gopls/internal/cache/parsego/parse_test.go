@@ -299,6 +299,40 @@ func f(c Color) int {
 	}
 }
 
+func TestParseShorthandTypeDecls(t *testing.T) {
+	const src = `
+package p
+
+struct Person {
+	Name string
+}
+
+interface Stringer {
+	String() string
+}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+	var foundStruct, foundInterface bool
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		switch node.(type) {
+		case *ast.StructDecl:
+			foundStruct = true
+		case *ast.InterfaceDecl:
+			foundInterface = true
+		}
+		return true
+	})
+	if !foundStruct || !foundInterface {
+		t.Fatalf("missing shorthand decls: struct=%v interface=%v", foundStruct, foundInterface)
+	}
+}
+
 func TestParseNullableAndNullCond(t *testing.T) {
 	const src = `
 package p
