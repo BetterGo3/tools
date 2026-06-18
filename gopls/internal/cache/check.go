@@ -640,7 +640,15 @@ func (b *typeCheckBatch) checkPackageForImport(ctx context.Context, ph *packageH
 		return nil, ctx.Err()
 	}
 
-	_ = check.Files(files) // ignore errors
+	// Type checking errors are handled via the config, so ignore them here.
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				bug.Reportf("type checking panicked: %v", r)
+			}
+		}()
+		_ = check.Files(files)
+	}()
 
 	// If the context was cancelled, we may have returned a ton of transient
 	// errors to the type checker. Swallow them.
@@ -1669,7 +1677,19 @@ func (b *typeCheckBatch) checkPackage(ctx context.Context, fset *token.FileSet, 
 		}
 
 		// Type checking errors are handled via the config, so ignore them here.
-		_ = check.Files(files) // 50us-15ms, depending on size of package
+		var checkErr error
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					checkErr = fmt.Errorf("type checking panicked: %v", r)
+					bug.Reportf("type checking panicked: %v", r)
+				}
+			}()
+			checkErr = check.Files(files)
+		}()
+		if checkErr != nil {
+			return nil, checkErr
+		}
 
 		// If the context was cancelled, we may have returned a ton of transient
 		// errors to the type checker. Swallow them.
