@@ -506,6 +506,16 @@ func (s *Session) Views() []*View {
 	return result
 }
 
+// ContainsView reports whether v is an active view in this session.
+func (s *Session) ContainsView(v *View) bool {
+	if v == nil {
+		return false
+	}
+	s.viewMu.Lock()
+	defer s.viewMu.Unlock()
+	return slices.Contains(s.views, v)
+}
+
 // selectViewDefs constructs the best set of views covering the provided workspace
 // folders and open files.
 //

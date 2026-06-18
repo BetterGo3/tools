@@ -198,6 +198,15 @@ func index(pgfs []*parsego.File, imports map[metadata.ImportPath]*metadata.Packa
 				if d.Recv.NumFields() == 0 {
 					addDecl(d.Name)
 				}
+
+			case *ast.EnumDecl:
+				addDecl(d.Name)
+
+			case *ast.StructDecl:
+				addDecl(d.Name)
+
+			case *ast.InterfaceDecl:
+				addDecl(d.Name)
 			}
 		}
 	}
@@ -402,6 +411,18 @@ func visitFile(file *ast.File, imports map[metadata.ImportPath]*metadata.Package
 				tparams := tparamsMap(d.Type.TypeParams)
 				visit(d.Name, d, tparams)
 			}
+
+		case *ast.EnumDecl:
+			tparams := tparamsMap(d.TypeParams)
+			visit(d.Name, d, tparams)
+
+		case *ast.StructDecl:
+			tparams := tparamsMap(d.TypeParams)
+			visit(d.Name, d, tparams)
+
+		case *ast.InterfaceDecl:
+			tparams := tparamsMap(d.TypeParams)
+			visit(d.Name, d, tparams)
 		}
 	}
 }
@@ -463,6 +484,35 @@ func visitDeclOrSpec(node ast.Node, f refVisitor) {
 		// Skip Doc, Name, and Body, which do not affect the type.
 		// Recv is handled by Refs: methods are associated with their type.
 		visitExpr(n.Type, f)
+
+	case *ast.EnumDecl:
+		if tparams := n.TypeParams; tparams != nil {
+			visitFieldList(tparams, f)
+		}
+		for _, v := range n.Variants {
+			for _, typ := range v.Types {
+				visitExpr(typ, f)
+			}
+			if v.StructFields != nil {
+				visitFieldList(v.StructFields, f)
+			}
+		}
+
+	case *ast.StructDecl:
+		if tparams := n.TypeParams; tparams != nil {
+			visitFieldList(tparams, f)
+		}
+		if n.Fields != nil {
+			visitFieldList(n.Fields, f)
+		}
+
+	case *ast.InterfaceDecl:
+		if tparams := n.TypeParams; tparams != nil {
+			visitFieldList(tparams, f)
+		}
+		if n.Methods != nil {
+			visitFieldList(n.Methods, f)
+		}
 
 	default:
 		panic(fmt.Sprintf("unexpected node type %T", node))

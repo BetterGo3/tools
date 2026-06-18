@@ -634,6 +634,19 @@ func (s *server) updateDiagnostics(ctx context.Context, snapshot *cache.Snapshot
 	ctx, done := event.Start(ctx, "server.publishDiagnostics")
 	defer done()
 
+	// Snapshot the active views before locking diagnosticsMu. Calling Views()
+	// while holding diagnosticsMu can deadlock with DidModifyFiles, which holds
+	// viewMu for the duration of view invalidation (golang/go#65312).
+	//
+	// To avoid incorrectly deleting diagnostics for a view created after this
+	// snapshot, always include the diagnosing view and use ContainsView when
+	// pruning stale byView entries.
+	viewMap := make(viewSet)
+	for _, v := range s.session.Views() {
+		viewMap[v] = unit{}
+	}
+	viewMap[snapshot.View()] = unit{}
+
 	s.diagnosticsMu.Lock()
 	defer s.diagnosticsMu.Unlock()
 
@@ -651,16 +664,6 @@ func (s *server) updateDiagnostics(ctx context.Context, snapshot *cache.Snapshot
 	// after they are created.
 	if ctx.Err() != nil {
 		return
-	}
-
-	// golang/go#65312: since the set of diagnostics depends on the set of views,
-	// we get the views *after* locking diagnosticsMu. This ensures that
-	// updateDiagnostics does not incorrectly delete diagnostics that have been
-	// set for an existing view that was created between the call to
-	// s.session.Views() and updateDiagnostics.
-	viewMap := make(viewSet)
-	for _, v := range s.session.Views() {
-		viewMap[v] = unit{}
 	}
 
 	// updateAndPublish updates diagnostics for a file, checking both the latest
@@ -809,7 +812,9 @@ func (s *server) publishFileDiagnosticsLocked(ctx context.Context, views viewSet
 	var allViews []*cache.View
 	for view, viewDiags := range f.byView {
 		if _, ok := views[view]; !ok {
-			delete(f.byView, view) // view no longer exists
+			if !s.session.ContainsView(view) {
+				delete(f.byView, view) // view no longer exists
+			}
 			continue
 		}
 		if viewDiags.version != version {
