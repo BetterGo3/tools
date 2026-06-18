@@ -1,9 +1,5 @@
 package a
 
-type Person struct {
+type Person struct { // want "type declaration can use struct/interface shorthand syntax"
 	Name string
-}
-
-type Stringer interface {
-	String() string
 }
