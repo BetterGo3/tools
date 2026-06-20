@@ -378,6 +378,57 @@ func g(p *T) int {
 	}
 }
 
+func TestParseCompositeSuffixTypes(t *testing.T) {
+	const src = `
+package p
+
+func sliceResult() []string! {
+	return nil
+}
+
+func sliceOfResults() [](string!) {
+	var s string! = "ok"
+	return [](string!){s}
+}
+
+func optionalSlice() []string? {
+	return nil
+}
+
+func sliceOfOptionals() [](string?) {
+	hi := "a"
+	return [](string?){nil, &hi, nil}
+}
+`
+	pgf, fixes := parsego.Parse(context.Background(), token.NewFileSet(), "file://p.go", []byte(src), parsego.Full, false)
+	if len(fixes) != 0 {
+		t.Fatalf("unexpected parse fixes: %v", fixes)
+	}
+	if pgf.ParseErr != nil {
+		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
+	}
+
+	var (
+		resultTypes   int
+		nullableTypes int
+	)
+	ast.Inspect(pgf.File, func(node ast.Node) bool {
+		switch node.(type) {
+		case *ast.ResultTypeExpr:
+			resultTypes++
+		case *ast.NullableTypeExpr:
+			nullableTypes++
+		}
+		return true
+	})
+	if resultTypes < 2 {
+		t.Fatalf("expected at least 2 ast.ResultTypeExpr nodes, got %d", resultTypes)
+	}
+	if nullableTypes < 2 {
+		t.Fatalf("expected at least 2 ast.NullableTypeExpr nodes, got %d", nullableTypes)
+	}
+}
+
 func TestParseDefaultArgs(t *testing.T) {
 	const src = `
 package p
