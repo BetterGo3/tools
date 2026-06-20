@@ -5,8 +5,11 @@
 package pathutil
 
 import (
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 )
 
 // InDir checks whether path is in the file tree rooted at dir.
@@ -46,4 +49,39 @@ func InDir(dir, path string) bool {
 		}
 		return false
 	}
+}
+
+var systemTempDirOnce sync.Once
+var systemTempDirValue string
+
+// SystemTempDir returns the operating system's default temporary directory,
+// ignoring TMP/TEMP/TMPDIR overrides. Tests often redirect os.TempDir to an
+// isolated directory, but module and workspace discovery walks up to the real
+// system temp directory and must ignore stray go.mod and go.work files there.
+func SystemTempDir() string {
+	systemTempDirOnce.Do(func() {
+		if runtime.GOOS == "windows" {
+			systemTempDirValue = filepath.Join(os.Getenv("LOCALAPPDATA"), "Temp")
+			return
+		}
+		envs := []string{"TMP", "TEMP", "TMPDIR"}
+		saved := make([]string, len(envs))
+		for i, k := range envs {
+			saved[i] = os.Getenv(k)
+			os.Unsetenv(k)
+		}
+		systemTempDirValue = os.TempDir()
+		for i, k := range envs {
+			if saved[i] != "" {
+				os.Setenv(k, saved[i])
+			}
+		}
+	})
+	return systemTempDirValue
+}
+
+// InSystemTempDir reports whether path is the system temp directory or a
+// subdirectory of it.
+func InSystemTempDir(path string) bool {
+	return InDir(SystemTempDir(), path)
 }
