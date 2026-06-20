@@ -1116,7 +1116,11 @@ func findRootPattern(ctx context.Context, dirURI protocol.DocumentURI, basename 
 			return "", err // context cancelled
 		}
 		if fileExists(fh) {
-			return uri, nil
+			// Ignore stray go.mod/go.work files in the system temp directory.
+			// See golang.org/issue/26708.
+			if !pathutil.InSystemTempDir(dir) {
+				return uri, nil
+			}
 		}
 		// Trailing separators must be trimmed, otherwise filepath.Split is a noop.
 		next, _ := filepath.Split(strings.TrimRight(dir, string(filepath.Separator)))

@@ -790,11 +790,14 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 			return zeroConst(fn.instanceType(e))
 		}
 
-		// Package-level func or var?
+		// Package-level func, var, or const?
 		// (obj must belong to same package or a direct import.)
 		if v := fn.Prog.packageLevelMember(obj); v != nil {
 			if g, ok := v.(*Global); ok {
 				return emitLoad(fn, g) // var (address)
+			}
+			if c, ok := v.(*NamedConst); ok {
+				return c.Value
 			}
 			callee := v.(*Function) // (func)
 			if callee.typeparams.Len() > 0 {
@@ -803,8 +806,15 @@ func (b *builder) expr0(fn *Function, e ast.Expr, tv types.TypeAndValue) Value {
 			}
 			return callee
 		}
-		// Local var.
-		return emitLoad(fn, fn.lookup(obj.(*types.Var), false)) // var (address)
+		// Local var or package-level const without SSA member.
+		switch obj := obj.(type) {
+		case *types.Var:
+			return emitLoad(fn, fn.lookup(obj, false)) // var (address)
+		case *types.Const:
+			return fn.Prog.ConstValue(obj)
+		default:
+			panic(fmt.Sprintf("unexpected identifier object: %T %s", obj, obj))
+		}
 
 	case *ast.SelectorExpr:
 		sel := fn.selection(e)
