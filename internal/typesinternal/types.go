@@ -157,14 +157,15 @@ func IsPackageLevel(obj types.Object) bool {
 // NewTypesInfo returns a *types.Info with all maps populated.
 func NewTypesInfo() *types.Info {
 	return &types.Info{
-		Types:        map[ast.Expr]types.TypeAndValue{},
-		Instances:    map[*ast.Ident]types.Instance{},
-		Defs:         map[*ast.Ident]types.Object{},
-		Uses:         map[*ast.Ident]types.Object{},
-		Implicits:    map[ast.Node]types.Object{},
-		Selections:   map[*ast.SelectorExpr]*types.Selection{},
-		Scopes:       map[ast.Node]*types.Scope{},
-		FileVersions: map[*ast.File]string{},
+		Types:           map[ast.Expr]types.TypeAndValue{},
+		Instances:       map[*ast.Ident]types.Instance{},
+		Defs:            map[*ast.Ident]types.Object{},
+		Uses:            map[*ast.Ident]types.Object{},
+		Implicits:       map[ast.Node]types.Object{},
+		Selections:      map[*ast.SelectorExpr]*types.Selection{},
+		Scopes:          map[ast.Node]*types.Scope{},
+		FileVersions:    map[*ast.File]string{},
+		UsedImportNames: map[string]bool{},
 	}
 }
 

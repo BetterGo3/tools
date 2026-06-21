@@ -131,6 +131,11 @@ func computeImportEdits(ctx context.Context, pgf *parsego.File, snapshot *cache.
 	filename := pgf.URI.Path()
 
 	source := snapshot.NewGoplsSource()
+	if pkg, _, err := NarrowestPackageForFile(ctx, snapshot, pgf.URI); err == nil {
+		if info := pkg.TypesInfo(); info != nil && len(info.UsedImportNames) > 0 {
+			source = source.WithUsedImportNames(info.UsedImportNames)
+		}
+	}
 	// imports require a current metadata graph
 	// TODO(rfindley): improve the API
 	snapshot.WorkspaceMetadata(ctx) // ignore error
