@@ -322,6 +322,13 @@ func (b *typeCheckBatch) getImportPackage(ctx context.Context, id PackageID) (pk
 			return types.Unsafe, nil
 		}
 
+		// Shallow export data does not record operator/overload metadata
+		// (pkg.overloadFuncs in go/types). Prefer type-checking from local
+		// source when available so cross-package operator overloads resolve.
+		if ph.state >= validLocalData && ph.localInputs != nil && len(ph.localInputs.compiledGoFiles) > 0 {
+			return b.checkPackageForImport(ctx, ph)
+		}
+
 		data, err := filecache.Get(exportDataKind, ph.key, filecache.Bytes)
 		if err == filecache.ErrNotFound {
 			// No cached export data: type-check as fast as possible.
