@@ -373,6 +373,8 @@ func (r *reader) doTyp() (res types.Type) {
 		return types.NewMap(r.typ(), r.typ())
 	case pkgbits.TypePointer:
 		return types.NewPointer(r.typ())
+	case pkgbits.TypeOptional:
+		return types.NewOptional(r.typ())
 	case pkgbits.TypeSignature:
 		return r.signature(nil, nil, nil)
 	case pkgbits.TypeSlice:
@@ -476,7 +478,11 @@ func (r *reader) param() *types.Var {
 	pkg, name := r.localIdent()
 	typ := r.typ()
 
-	return types.NewParam(pos, pkg, name, typ)
+	param := types.NewParam(pos, pkg, name, typ)
+	if r.Version().Has(pkgbits.ParamDefaultVal) && r.Bool() {
+		param.SetDefaultVal(r.Value())
+	}
+	return param
 }
 
 // @@@ Objects
