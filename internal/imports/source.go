@@ -61,3 +61,10 @@ type Source interface {
 	// missing map.
 	ResolveReferences(ctx context.Context, filename string, missing References) ([]*Result, error)
 }
+
+// UsedImportNamesSource is optionally implemented by a Source to report import
+// identifiers that must be kept even when not referenced as pkg.Symbol
+// selectors, such as side-effect imports for extension methods.
+type UsedImportNamesSource interface {
+	UsedImportNames(ctx context.Context, filename string) map[PackageName]bool
+}

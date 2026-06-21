@@ -186,6 +186,23 @@ func collectReferences(f *ast.File) References {
 	return refs
 }
 
+func (p *pass) mergeUsedImportNames(ctx context.Context) {
+	uins, ok := p.source.(UsedImportNamesSource)
+	if !ok {
+		return
+	}
+	for name := range uins.UsedImportNames(ctx, p.filename) {
+		if name == "" || name == "." || name == "_" {
+			continue
+		}
+		if p.allRefs[name] == nil {
+			p.allRefs[name] = make(map[string]bool)
+		}
+		// Any symbol marks the import as used; the value is ignored for deletion.
+		p.allRefs[name][""] = true
+	}
+}
+
 // collectImports returns all the imports in f.
 // Unnamed imports (., _) and "C" are ignored.
 func collectImports(f *ast.File) []*ImportInfo {
@@ -240,6 +257,7 @@ type pass struct {
 	// Inputs. These must be set before a call to load, and not modified after.
 	fset                 *token.FileSet // fset used to parse f and its siblings.
 	f                    *ast.File      // the file being fixed.
+	filename             string         // absolute path to f
 	srcDir               string         // the directory containing f.
 	logf                 func(string, ...any)
 	source               Source      // the environment to use for go commands, etc.
@@ -327,6 +345,7 @@ func (p *pass) load(ctx context.Context) ([]*ImportFix, bool) {
 
 	// Load basic information about the file in question.
 	p.allRefs = collectReferences(p.f)
+	p.mergeUsedImportNames(ctx)
 
 	// Load stuff from other files in the same package:
 	// global variables so we know they don't need resolving, and imports
@@ -593,12 +612,13 @@ func getFixesWithSource(ctx context.Context, fset *token.FileSet, f *ast.File, f
 	// complete. We can't add any imports yet, because we don't know
 	// if missing references are actually package vars.
 	p := &pass{
-		fset:   fset,
-		f:      f,
-		srcDir: srcDir,
-		logf:   logf,
-		goroot: goroot,
-		source: source,
+		fset:     fset,
+		f:        f,
+		filename: abs,
+		srcDir:   srcDir,
+		logf:     logf,
+		goroot:   goroot,
+		source:   source,
 	}
 	if fixes, done := p.load(ctx); done {
 		return fixes, nil
@@ -626,12 +646,13 @@ func getFixesWithSource(ctx context.Context, fset *token.FileSet, f *ast.File, f
 	// Third pass: get real package names where we had previously used
 	// the naive algorithm.
 	p = &pass{
-		fset:   fset,
-		f:      f,
-		srcDir: srcDir,
-		logf:   logf,
-		goroot: goroot,
-		source: p.source, // safe to reuse, as it's just a wrapper around env
+		fset:     fset,
+		f:        f,
+		filename: abs,
+		srcDir:   srcDir,
+		logf:     logf,
+		goroot:   goroot,
+		source:   p.source, // safe to reuse, as it's just a wrapper around env
 	}
 	p.loadRealPackageNames = true
 	p.otherFiles = otherFiles
