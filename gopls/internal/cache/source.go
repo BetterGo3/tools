@@ -24,11 +24,25 @@ type goplsSource struct {
 
 	// set by each invocation of ResolveReferences
 	ctx context.Context
+
+	// usedImportNames, when set, lists import identifiers that must be kept
+	// even if not referenced as pkg.Symbol (extension side-effect imports).
+	usedImportNames map[string]bool
 }
 
 func (s *Snapshot) NewGoplsSource() *goplsSource {
 	return &goplsSource{
 		snapshot: s,
+	}
+}
+
+func (s *goplsSource) WithUsedImportNames(names map[string]bool) *goplsSource {
+	if len(names) == 0 {
+		return s
+	}
+	return &goplsSource{
+		snapshot:        s.snapshot,
+		usedImportNames: maps.Clone(names),
 	}
 }
 
@@ -86,6 +100,13 @@ func (s *goplsSource) ResolveReferences(ctx context.Context, filename string, mi
 }
 
 func (s *goplsSource) UsedImportNames(ctx context.Context, filename string) map[imports.PackageName]bool {
+	if len(s.usedImportNames) > 0 {
+		out := make(map[imports.PackageName]bool, len(s.usedImportNames))
+		for name := range s.usedImportNames {
+			out[imports.PackageName(name)] = true
+		}
+		return out
+	}
 	uri := protocol.URIFromPath(filename)
 	mypkgs, err := s.snapshot.MetadataForFile(ctx, uri, false)
 	if err != nil || len(mypkgs) == 0 {
