@@ -1623,6 +1623,7 @@ func (b *typeCheckBatch) checkPackage(ctx context.Context, fset *token.FileSet, 
 			CallOverloads:      make(map[ast.Expr][]*types.Func),
 			IndexOperatorCalls: make(map[ast.Expr]*ast.CallExpr),
 			IndexAssignCalls:   make(map[ast.Expr]*ast.CallExpr),
+			UsedImportNames:    make(map[string]bool),
 		},
 	}
 

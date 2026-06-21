@@ -85,6 +85,27 @@ func (s *goplsSource) ResolveReferences(ctx context.Context, filename string, mi
 
 }
 
+func (s *goplsSource) UsedImportNames(ctx context.Context, filename string) map[imports.PackageName]bool {
+	uri := protocol.URIFromPath(filename)
+	mypkgs, err := s.snapshot.MetadataForFile(ctx, uri, false)
+	if err != nil || len(mypkgs) == 0 {
+		return nil
+	}
+	pkgs, err := s.snapshot.TypeCheck(ctx, mypkgs[0].ID)
+	if err != nil || len(pkgs) == 0 {
+		return nil
+	}
+	info := pkgs[0].TypesInfo()
+	if info == nil || len(info.UsedImportNames) == 0 {
+		return nil
+	}
+	out := make(map[imports.PackageName]bool, len(info.UsedImportNames))
+	for name := range info.UsedImportNames {
+		out[imports.PackageName(name)] = true
+	}
+	return out
+}
+
 func (s *goplsSource) resolveCacheReferences(missing imports.References) ([]*result, error) {
 	ix, err := s.snapshot.view.ModcacheIndex()
 	if err != nil {
