@@ -53,9 +53,10 @@ const (
 	iexportVersionGo1_18         = 2
 	iexportVersionGenerics       = 2
 	iexportVersionGenericMethods = 3
-	iexportVersion               = iexportVersionGenericMethods
+	iexportVersionOptional       = 4
+	iexportVersion               = iexportVersionOptional
 
-	iexportVersionCurrent = 3
+	iexportVersionCurrent = 4
 )
 
 type ident struct {
@@ -82,6 +83,7 @@ const (
 	instanceType
 	unionType
 	aliasType
+	optionalType
 )
 
 // Object tags
@@ -180,9 +182,9 @@ func iimportCommon(fset *token.FileSet, getPackages GetPackagesFunc, data []byte
 
 	version = int64(r.uint64())
 	switch version {
-	case iexportVersionGenericMethods, iexportVersionGo1_18, iexportVersionPosCol, iexportVersionGo1_11:
+	case iexportVersionOptional, iexportVersionGenericMethods, iexportVersionGo1_18, iexportVersionPosCol, iexportVersionGo1_11:
 	default:
-		if version > iexportVersionGenericMethods {
+		if version > iexportVersionOptional {
 			errorf("unstable iexport format version %d, just rebuild compiler and std library", version)
 		} else {
 			errorf("unknown iexport format version %d", version)
@@ -896,6 +898,8 @@ func (r *importReader) doType(base *types.Named) (res types.Type) {
 		return pkg.Scope().Lookup(name).(*types.TypeName).Type()
 	case pointerType:
 		return types.NewPointer(r.typ())
+	case optionalType:
+		return types.NewOptional(r.typ())
 	case sliceType:
 		return types.NewSlice(r.typ())
 	case arrayType:
