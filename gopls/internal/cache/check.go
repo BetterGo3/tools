@@ -1682,7 +1682,11 @@ func (b *typeCheckBatch) checkPackage(ctx context.Context, fset *token.FileSet, 
 			checkErr = check.Files(files)
 		}()
 		if checkErr != nil {
-			return nil, checkErr
+			// check.Files returns the first type error, but still populates
+			// typesInfo (including UsedImportNames). Only abort on panic.
+			if strings.HasPrefix(checkErr.Error(), "type checking panicked:") {
+				return nil, checkErr
+			}
 		}
 
 		// If the context was cancelled, we may have returned a ton of transient
