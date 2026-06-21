@@ -1044,6 +1044,10 @@ func (w *exportWriter) doTyp(t types.Type, pkg *types.Package) {
 		w.startType(pointerType)
 		w.typ(t.Elem(), pkg)
 
+	case *types.Optional:
+		w.startType(optionalType)
+		w.typ(t.Elem(), pkg)
+
 	case *types.Slice:
 		w.startType(sliceType)
 		w.typ(t.Elem(), pkg)
