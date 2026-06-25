@@ -1,10 +1,8 @@
-# `gopls`, the language server for Go
+# `gopls`, the language server for Better
 
 Package documentation: https://pkg.go.dev/golang.org/x/tools/gopls
 
-`gopls` (pronounced "Go please") is the official [language
-server](https://langserver.org) for Go, developed and maintained by
-the Go team.
+`gopls` is the [language server](https://langserver.org) for Better.
 It provides a wide variety of [IDE features](doc/features/)
 to any [LSP](https://microsoft.github.io/language-server-protocol/)-compatible
 editor.

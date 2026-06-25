@@ -1,5 +1,5 @@
 ---
-title: "Gopls: The language server for Go"
+title: "Gopls: The language server for Better"
 ---
 <!--
   This is the main landing page for gopls users.
@@ -9,8 +9,7 @@ title: "Gopls: The language server for Go"
     $ open http://localhost:6060/go.dev/gopls
 -->
 
-`gopls` (pronounced "Go please") is the official [language
-server](https://langserver.org) for Go, developed by the Go team. It
+`gopls` is the [language server](https://langserver.org) for Better. It
 provides a wide variety of [IDE features](features/) to any
 [LSP](https://microsoft.github.io/language-server-protocol/)-compatible
 editor.
