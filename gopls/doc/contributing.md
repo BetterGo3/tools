@@ -59,7 +59,7 @@ claiming it.
 
 ## Getting started
 
-[![PkgGoDev](https://pkg.go.dev/badge/golang.org/x/tools/gopls/internal)](https://pkg.go.dev/golang.org/x/tools/gopls/internal)
+Package documentation: https://pkg.go.dev/golang.org/x/tools/gopls/internal
 
 Most of the `gopls` logic is in the `golang.org/x/tools/gopls/internal` directory.
 See [design/implementation.md](./design/implementation.md) for an overview of the code organization.

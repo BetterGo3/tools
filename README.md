@@ -1,11 +1,11 @@
 # Go Tools
 
-[![PkgGoDev](https://pkg.go.dev/badge/golang.org/x/tools)](https://pkg.go.dev/golang.org/x/tools)
+Package documentation: https://pkg.go.dev/golang.org/x/tools
 
 This repository provides the `golang.org/x/tools` module, comprising
 various tools and packages mostly for static analysis of Go programs,
 some of which are listed below.
-Use the "Go reference" link above for more information about any package.
+See pkg.go.dev for more information about any package.
 
 It also contains the
 [`golang.org/x/tools/gopls`](https://pkg.go.dev/golang.org/x/tools/gopls)
