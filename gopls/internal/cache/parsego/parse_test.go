@@ -333,7 +333,7 @@ interface Stringer {
 	}
 }
 
-func TestParseNullableAndNullCond(t *testing.T) {
+func TestParseNilableAndNullCond(t *testing.T) {
 	const src = `
 package p
 
@@ -358,20 +358,20 @@ func g(p *T) int {
 		t.Fatalf("unexpected parse errors: %v", pgf.ParseErr)
 	}
 	var (
-		foundNullable bool
+		foundNilable bool
 		foundNullCond bool
 	)
 	ast.Inspect(pgf.File, func(node ast.Node) bool {
 		switch node.(type) {
-		case *ast.NullableTypeExpr:
-			foundNullable = true
+		case *ast.NilableTypeExpr:
+			foundNilable = true
 		case *ast.NullCondExpr:
 			foundNullCond = true
 		}
 		return true
 	})
-	if !foundNullable {
-		t.Fatalf("missing ast.NullableTypeExpr")
+	if !foundNilable {
+		t.Fatalf("missing ast.NilableTypeExpr")
 	}
 	if !foundNullCond {
 		t.Fatalf("missing ast.NullCondExpr")
@@ -410,22 +410,22 @@ func sliceOfOptionals() [](string?) {
 
 	var (
 		resultTypes   int
-		nullableTypes int
+		nilableTypes int
 	)
 	ast.Inspect(pgf.File, func(node ast.Node) bool {
 		switch node.(type) {
 		case *ast.ResultTypeExpr:
 			resultTypes++
-		case *ast.NullableTypeExpr:
-			nullableTypes++
+		case *ast.NilableTypeExpr:
+			nilableTypes++
 		}
 		return true
 	})
 	if resultTypes < 2 {
 		t.Fatalf("expected at least 2 ast.ResultTypeExpr nodes, got %d", resultTypes)
 	}
-	if nullableTypes < 2 {
-		t.Fatalf("expected at least 2 ast.NullableTypeExpr nodes, got %d", nullableTypes)
+	if nilableTypes < 2 {
+		t.Fatalf("expected at least 2 ast.NilableTypeExpr nodes, got %d", nilableTypes)
 	}
 }
 

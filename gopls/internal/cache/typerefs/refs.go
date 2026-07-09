@@ -639,7 +639,7 @@ func visitExpr(expr ast.Expr, f refVisitor) {
 	case *ast.TryExpr:
 		visitExpr(n.X, f)
 
-	case *ast.NullableTypeExpr:
+	case *ast.NilableTypeExpr:
 		visitExpr(n.X, f)
 
 	case *ast.NullCondExpr:

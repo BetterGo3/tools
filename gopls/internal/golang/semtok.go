@@ -408,7 +408,7 @@ func (tv *tokenVisitor) inspect(n ast.Node) (descend bool) {
 		tv.token(n.Arrow, len("=>"), semtok.TokOperator)
 	case *ast.NullCondExpr:
 		tv.token(n.QPos, len("?."), semtok.TokOperator)
-	case *ast.NullableTypeExpr:
+	case *ast.NilableTypeExpr:
 		tv.token(n.QPos, len("?"), semtok.TokOperator)
 	case *ast.ResultTypeExpr:
 		tv.token(n.Bang, len("!"), semtok.TokOperator)

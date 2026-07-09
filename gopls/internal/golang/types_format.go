@@ -557,8 +557,8 @@ func qualifyTypeExpr(expr ast.Expr, qf func(string) string) ast.Expr {
 			Bang: expr.Bang,
 		}
 
-	case *ast.NullableTypeExpr:
-		return &ast.NullableTypeExpr{
+	case *ast.NilableTypeExpr:
+		return &ast.NilableTypeExpr{
 			X:    qualifyTypeExpr(expr.X, qf),
 			QPos: expr.QPos,
 		}
