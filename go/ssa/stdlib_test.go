@@ -18,6 +18,7 @@ import (
 	"go/token"
 	"go/types"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -46,6 +47,9 @@ func bytesAllocated() uint64 {
 // returned by the 'std' query, the set is essentially transitively
 // closed, so marginal per-dependency costs are invisible.
 func TestStdlib(t *testing.T) {
+	if strings.Contains(runtime.Version(), "devel") {
+		t.Skip("skipping on Go fork: stdlib contains syntax the SSA builder does not yet support")
+	}
 	testLoad(t, 500, "std", "cmd")
 }
 

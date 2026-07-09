@@ -68,9 +68,9 @@ func compilePkg(t *testing.T, dirname, filename, outdirname string, packagefiles
 	objname := basename + ".o"
 	outname := filepath.Join(outdirname, objname)
 
-	importcfgfile := os.DevNull
+	var importcfgArgs []string
 	if len(packagefiles) > 0 {
-		importcfgfile = filepath.Join(outdirname, basename) + ".importcfg"
+		importcfgfile := filepath.Join(outdirname, basename) + ".importcfg"
 		importcfg := new(bytes.Buffer)
 		fmt.Fprintf(importcfg, "# import config")
 		for k, v := range packagefiles {
@@ -79,10 +79,14 @@ func compilePkg(t *testing.T, dirname, filename, outdirname string, packagefiles
 		if err := os.WriteFile(importcfgfile, importcfg.Bytes(), 0655); err != nil {
 			t.Fatal(err)
 		}
+		importcfgArgs = []string{"-importcfg", importcfgfile}
 	}
 
 	importreldir := strings.ReplaceAll(outdirname, string(os.PathSeparator), "/")
-	cmd := exec.Command("go", "tool", "compile", "-p", pkg, "-D", importreldir, "-importcfg", importcfgfile, "-o", outname, filename)
+	args := []string{"tool", "compile", "-p", pkg, "-D", importreldir}
+	args = append(args, importcfgArgs...)
+	args = append(args, "-o", outname, filename)
+	cmd := exec.Command("go", args...)
 	cmd.Dir = dirname
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Logf("%s", out)

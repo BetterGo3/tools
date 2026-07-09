@@ -343,7 +343,7 @@ func TestFalconComplex(t *testing.T) {
 			`func _() { f(1, 2, 5+0i) }`,
 			// The float64 conversions are excessively conservative here
 			// but in general may affect the type of complex produced.
-			`func _() { _ = "x"[int(real(complex(float64(1), float64(2))*complex(float64(1), -2)-(5+0i)))] }`,
+			`func _() { _ = "x"[int(real(complex(float64(1), float64(2)) * complex(float64(1), -2) - (5 + 0i)))] }`,
 		},
 		{
 			"Complex arithmetic (bad).",
@@ -354,7 +354,7 @@ func TestFalconComplex(t *testing.T) {
 		re, im float64    = 1, 3
 		z      complex128 = 5 + 0i
 	)
-	_ = "x"[int(real(complex(re, im)*complex(re, -im)-z))]
+	_ = "x"[int(real(complex(re, im) * complex(re, -im) - z))]
 }`,
 		},
 	})
@@ -365,7 +365,7 @@ func TestFalconMisc(t *testing.T) {
 			"Compound constant expression (good).",
 			`func f(x, y string, i, j int) byte { return x[i*len(y)+j] }`,
 			`func _() { f("abc", "xy", 2, -3) }`,
-			`func _() { _ = "abc"[2*len("xy")+-3] }`,
+			`func _() { _ = "abc"[2 * len("xy") + -3] }`,
 		},
 		{
 			"Compound constant expression (index out of range).",
@@ -376,7 +376,7 @@ func TestFalconMisc(t *testing.T) {
 		x, y string = "abc", "xy"
 		i, j int    = 4, -3
 	)
-	_ = x[i*len(y)+j]
+	_ = x[i * len(y) + j]
 }`,
 		},
 		{

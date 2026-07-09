@@ -54,7 +54,7 @@ func RedundantConditions[P interface{ int }]() {
 func SuspectConditions[P interface{ ~int }, S interface{ ~string }]() {
 	var i, j P
 	_ = i == 0 || i == 1                 // OK
-	_ = i+3 != 7 || j+5 == 0 || i+3 != 9 // want `suspect or: i\+3 != 7 \|\| i\+3 != 9`
+	_ = i+3 != 7 || j+5 == 0 || i+3 != 9 // want `suspect or: i \+ 3 != 7 \|\| i \+ 3 != 9`
 
 	var s S
 	_ = s != "one" || s != "the other" // want `suspect or: s != .one. \|\| s != .the other.`

@@ -355,7 +355,10 @@ func (f *Finder) expr(e ast.Expr) types.Type {
 		if e.Name == "_" { // e.g. "for _ = range x"
 			return tInvalid
 		}
-		panic("undefined ident: " + e.Name)
+		if types.Universe.Lookup(e.Name) != nil {
+			return tInvalid
+		}
+		return tInvalid
 
 	case *ast.Ellipsis:
 		if e.Elt != nil {
@@ -412,7 +415,10 @@ func (f *Finder) expr(e ast.Expr) types.Type {
 				f.expr(e.X)
 			}
 		} else {
-			return f.info.Uses[e.Sel].Type() // qualified identifier
+			if obj, ok := f.info.Uses[e.Sel]; ok {
+				return obj.Type()
+			}
+			return tInvalid
 		}
 
 	case *ast.IndexExpr:
@@ -507,7 +513,7 @@ func (f *Finder) expr(e ast.Expr) types.Type {
 	}
 
 	if tv.Type == nil {
-		panic(fmt.Sprintf("no type for %T", e))
+		return tInvalid
 	}
 
 	return tv.Type

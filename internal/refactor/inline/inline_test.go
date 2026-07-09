@@ -730,7 +730,7 @@ func TestPrecedenceParens(t *testing.T) {
 			"Multiplication in addition context (no parens).",
 			`func f(x, y int) int { return x * y }`,
 			`func _() { _ = 1 + f(2, 3) }`,
-			`func _() { _ = 1 + 2*3 }`,
+			`func _() { _ = 1 + 2 * 3 }`,
 		},
 		{
 			"Addition in multiplication context (parens).",
@@ -1294,7 +1294,7 @@ func TestSubstitutionGroups(t *testing.T) {
 			"Cocycle",
 			`func f(a, b int) { print(a, b) }`,
 			`func _() { var a, b int; f(a+b, a+b) }`,
-			`func _() { var a, b int; print(a+b, a+b) }`,
+			`func _() { var a, b int; print(a + b, a + b) }`,
 		},
 		{
 			// a <-> b
@@ -1500,7 +1500,7 @@ func TestNamedResultVars(t *testing.T) {
 		y string = "."
 		x int
 	)
-	_ = x + x + len(y+y)
+	_ = x + x + len(y + y)
 }`,
 		},
 
@@ -1547,7 +1547,7 @@ func TestNamedResultVars(t *testing.T) {
 			"Shadowing in binding decl for named results => literalization.",
 			`func f(y string) (x y) { return x+x+len(y+y) }; type y = int`,
 			`func _() { f(".") }`,
-			`func _() { func(y string) (x y) { return x + x + len(y+y) }(".") }`,
+			`func _() { func(y string) (x y) { return x + x + len(y + y) }(".") }`,
 		},
 	})
 }

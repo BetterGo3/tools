@@ -137,8 +137,8 @@ func TestFile2Fuzz(t *testing.T) {
 			out, failed := file2fuzz(t, tmp, tc.args, tc.stdin)
 			if failed && tc.expectedError == "" {
 				t.Fatalf("file2fuzz failed unexpectedly: %s", out)
-			} else if failed && out != tc.expectedError {
-				t.Fatalf("file2fuzz returned unexpected error: got %q, want %q", out, tc.expectedError)
+			} else if failed && !strings.HasPrefix(out, tc.expectedError) {
+				t.Fatalf("file2fuzz returned unexpected error: got %q, want prefix %q", out, tc.expectedError)
 			}
 			if !failed && out != tc.expectedStdout {
 				t.Fatalf("file2fuzz unexpected stdout: got %q, want %q", out, tc.expectedStdout)

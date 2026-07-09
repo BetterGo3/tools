@@ -31,8 +31,8 @@ package d1
 import "fmt"
 
 func example() {
-	fmt.Println(456, "!")         // match
-	fmt.Println(456, "!")         // match
-	fmt.Println(456, "!")         // match
-	fmt.Println(100+20+3, "a"+"") // no match: constant expressions, but not basic literals
+	fmt.Println(456, "!")               // match
+	fmt.Println(456, "!")               // match
+	fmt.Println(456, "!")               // match
+	fmt.Println(100 + 20 + 3, "a" + "") // no match: constant expressions, but not basic literals
 }

@@ -59,13 +59,13 @@ const day_out = `func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[Monday-0]
-	_ = x[Tuesday-1]
-	_ = x[Wednesday-2]
-	_ = x[Thursday-3]
-	_ = x[Friday-4]
-	_ = x[Saturday-5]
-	_ = x[Sunday-6]
+	_ = x[Monday - 0]
+	_ = x[Tuesday - 1]
+	_ = x[Wednesday - 2]
+	_ = x[Thursday - 3]
+	_ = x[Friday - 4]
+	_ = x[Saturday - 5]
+	_ = x[Sunday - 6]
 }
 
 const _Day_name = "MondayTuesdayWednesdayThursdayFridaySaturdaySunday"
@@ -74,10 +74,10 @@ var _Day_index = [...]uint8{0, 6, 13, 22, 30, 36, 44, 50}
 
 func (i Day) String() string {
 	idx := int(i) - 0
-	if i < 0 || idx >= len(_Day_index)-1 {
+	if i < 0 || idx >= len(_Day_index) - 1 {
 		return "Day(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _Day_name[_Day_index[idx]:_Day_index[idx+1]]
+	return _Day_name[_Day_index[idx]:_Day_index[idx + 1]]
 }
 `
 
@@ -97,9 +97,9 @@ const offset_out = `func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[One-1]
-	_ = x[Two-2]
-	_ = x[Three-3]
+	_ = x[One - 1]
+	_ = x[Two - 2]
+	_ = x[Three - 3]
 }
 
 const _Number_name = "OneTwoThree"
@@ -108,10 +108,10 @@ var _Number_index = [...]uint8{0, 3, 6, 11}
 
 func (i Number) String() string {
 	idx := int(i) - 1
-	if i < 1 || idx >= len(_Number_index)-1 {
+	if i < 1 || idx >= len(_Number_index) - 1 {
 		return "Number(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _Number_name[_Number_index[idx]:_Number_index[idx+1]]
+	return _Number_name[_Number_index[idx]:_Number_index[idx + 1]]
 }
 `
 
@@ -133,14 +133,14 @@ const gap_out = `func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[Two-2]
-	_ = x[Three-3]
-	_ = x[Five-5]
-	_ = x[Six-6]
-	_ = x[Seven-7]
-	_ = x[Eight-8]
-	_ = x[Nine-9]
-	_ = x[Eleven-11]
+	_ = x[Two - 2]
+	_ = x[Three - 3]
+	_ = x[Five - 5]
+	_ = x[Six - 6]
+	_ = x[Seven - 7]
+	_ = x[Eight - 8]
+	_ = x[Nine - 9]
+	_ = x[Eleven - 11]
 }
 
 const (
@@ -158,10 +158,10 @@ func (i Gap) String() string {
 	switch {
 	case 2 <= i && i <= 3:
 		i -= 2
-		return _Gap_name_0[_Gap_index_0[i]:_Gap_index_0[i+1]]
+		return _Gap_name_0[_Gap_index_0[i]:_Gap_index_0[i + 1]]
 	case 5 <= i && i <= 9:
 		i -= 5
-		return _Gap_name_1[_Gap_index_1[i]:_Gap_index_1[i+1]]
+		return _Gap_name_1[_Gap_index_1[i]:_Gap_index_1[i + 1]]
 	case i == 11:
 		return _Gap_name_2
 	default:
@@ -187,9 +187,9 @@ const num_out = `func _() {
 	var x [1]struct{}
 	_ = x[m_2 - -2]
 	_ = x[m_1 - -1]
-	_ = x[m0-0]
-	_ = x[m1-1]
-	_ = x[m2-2]
+	_ = x[m0 - 0]
+	_ = x[m1 - 1]
+	_ = x[m2 - 2]
 }
 
 const _Num_name = "m_2m_1m0m1m2"
@@ -198,10 +198,10 @@ var _Num_index = [...]uint8{0, 3, 6, 8, 10, 12}
 
 func (i Num) String() string {
 	idx := int(i) - -2
-	if i < -2 || idx >= len(_Num_index)-1 {
+	if i < -2 || idx >= len(_Num_index) - 1 {
 		return "Num(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _Num_name[_Num_index[idx]:_Num_index[idx+1]]
+	return _Num_name[_Num_index[idx]:_Num_index[idx + 1]]
 }
 `
 
@@ -223,11 +223,11 @@ const unum_out = `func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[m_2-253]
-	_ = x[m_1-254]
-	_ = x[m0-0]
-	_ = x[m1-1]
-	_ = x[m2-2]
+	_ = x[m_2 - 253]
+	_ = x[m_1 - 254]
+	_ = x[m0 - 0]
+	_ = x[m1 - 1]
+	_ = x[m2 - 2]
 }
 
 const (
@@ -243,10 +243,10 @@ var (
 func (i Unum) String() string {
 	switch {
 	case i <= 2:
-		return _Unum_name_0[_Unum_index_0[i]:_Unum_index_0[i+1]]
+		return _Unum_name_0[_Unum_index_0[i]:_Unum_index_0[i + 1]]
 	case 253 <= i && i <= 254:
 		i -= 253
-		return _Unum_name_1[_Unum_index_1[i]:_Unum_index_1[i+1]]
+		return _Unum_name_1[_Unum_index_1[i]:_Unum_index_1[i + 1]]
 	default:
 		return "Unum(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
@@ -271,11 +271,11 @@ const unumpos_out = `func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[m253-253]
-	_ = x[m254-254]
-	_ = x[m1-1]
-	_ = x[m2-2]
-	_ = x[m3-3]
+	_ = x[m253 - 253]
+	_ = x[m254 - 254]
+	_ = x[m1 - 1]
+	_ = x[m2 - 2]
+	_ = x[m3 - 3]
 }
 
 const (
@@ -292,10 +292,10 @@ func (i Unumpos) String() string {
 	switch {
 	case 1 <= i && i <= 3:
 		i -= 1
-		return _Unumpos_name_0[_Unumpos_index_0[i]:_Unumpos_index_0[i+1]]
+		return _Unumpos_name_0[_Unumpos_index_0[i]:_Unumpos_index_0[i + 1]]
 	case 253 <= i && i <= 254:
 		i -= 253
-		return _Unumpos_name_1[_Unumpos_index_1[i]:_Unumpos_index_1[i+1]]
+		return _Unumpos_name_1[_Unumpos_index_1[i]:_Unumpos_index_1[i + 1]]
 	default:
 		return "Unumpos(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
@@ -327,20 +327,20 @@ const prime_out = `func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[p2-2]
-	_ = x[p3-3]
-	_ = x[p5-5]
-	_ = x[p7-7]
-	_ = x[p77-7]
-	_ = x[p11-11]
-	_ = x[p13-13]
-	_ = x[p17-17]
-	_ = x[p19-19]
-	_ = x[p23-23]
-	_ = x[p29-29]
-	_ = x[p37-31]
-	_ = x[p41-41]
-	_ = x[p43-43]
+	_ = x[p2 - 2]
+	_ = x[p3 - 3]
+	_ = x[p5 - 5]
+	_ = x[p7 - 7]
+	_ = x[p77 - 7]
+	_ = x[p11 - 11]
+	_ = x[p13 - 13]
+	_ = x[p17 - 17]
+	_ = x[p19 - 19]
+	_ = x[p23 - 23]
+	_ = x[p29 - 29]
+	_ = x[p37 - 31]
+	_ = x[p41 - 41]
+	_ = x[p43 - 43]
 }
 
 const _Prime_name = "p2p3p5p7p11p13p17p19p23p29p37p41p43"
@@ -385,13 +385,13 @@ const prefix_out = `func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[TypeInt-0]
-	_ = x[TypeString-1]
-	_ = x[TypeFloat-2]
-	_ = x[TypeRune-3]
-	_ = x[TypeByte-4]
-	_ = x[TypeStruct-5]
-	_ = x[TypeSlice-6]
+	_ = x[TypeInt - 0]
+	_ = x[TypeString - 1]
+	_ = x[TypeFloat - 2]
+	_ = x[TypeRune - 3]
+	_ = x[TypeByte - 4]
+	_ = x[TypeStruct - 5]
+	_ = x[TypeSlice - 6]
 }
 
 const _Type_name = "IntStringFloatRuneByteStructSlice"
@@ -400,10 +400,10 @@ var _Type_index = [...]uint8{0, 3, 9, 14, 18, 22, 28, 33}
 
 func (i Type) String() string {
 	idx := int(i) - 0
-	if i < 0 || idx >= len(_Type_index)-1 {
+	if i < 0 || idx >= len(_Type_index) - 1 {
 		return "Type(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _Type_name[_Type_index[idx]:_Type_index[idx+1]]
+	return _Type_name[_Type_index[idx]:_Type_index[idx + 1]]
 }
 `
 
@@ -428,15 +428,15 @@ const tokens_out = `func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[And-0]
-	_ = x[Or-1]
-	_ = x[Add-2]
-	_ = x[Sub-3]
-	_ = x[Ident-4]
-	_ = x[Period-5]
-	_ = x[SingleBefore-6]
-	_ = x[BeforeAndInline-7]
-	_ = x[InlineGeneral-8]
+	_ = x[And - 0]
+	_ = x[Or - 1]
+	_ = x[Add - 2]
+	_ = x[Sub - 3]
+	_ = x[Ident - 4]
+	_ = x[Period - 5]
+	_ = x[SingleBefore - 6]
+	_ = x[BeforeAndInline - 7]
+	_ = x[InlineGeneral - 8]
 }
 
 const _Token_name = "&|+-Ident.SingleBeforeinlineinline general"
@@ -445,10 +445,10 @@ var _Token_index = [...]uint8{0, 1, 2, 3, 4, 9, 10, 22, 28, 42}
 
 func (i Token) String() string {
 	idx := int(i) - 0
-	if i < 0 || idx >= len(_Token_index)-1 {
+	if i < 0 || idx >= len(_Token_index) - 1 {
 		return "Token(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _Token_name[_Token_index[idx]:_Token_index[idx+1]]
+	return _Token_name[_Token_index[idx]:_Token_index[idx + 1]]
 }
 `
 
@@ -845,134 +845,134 @@ const overflow8_out = `func _() {
 	_ = x[O_3 - -3]
 	_ = x[O_2 - -2]
 	_ = x[O_1 - -1]
-	_ = x[O0-0]
-	_ = x[O1-1]
-	_ = x[O2-2]
-	_ = x[O3-3]
-	_ = x[O4-4]
-	_ = x[O5-5]
-	_ = x[O6-6]
-	_ = x[O7-7]
-	_ = x[O8-8]
-	_ = x[O9-9]
-	_ = x[O10-10]
-	_ = x[O11-11]
-	_ = x[O12-12]
-	_ = x[O13-13]
-	_ = x[O14-14]
-	_ = x[O15-15]
-	_ = x[O16-16]
-	_ = x[O17-17]
-	_ = x[O18-18]
-	_ = x[O19-19]
-	_ = x[O20-20]
-	_ = x[O21-21]
-	_ = x[O22-22]
-	_ = x[O23-23]
-	_ = x[O24-24]
-	_ = x[O25-25]
-	_ = x[O26-26]
-	_ = x[O27-27]
-	_ = x[O28-28]
-	_ = x[O29-29]
-	_ = x[O30-30]
-	_ = x[O31-31]
-	_ = x[O32-32]
-	_ = x[O33-33]
-	_ = x[O34-34]
-	_ = x[O35-35]
-	_ = x[O36-36]
-	_ = x[O37-37]
-	_ = x[O38-38]
-	_ = x[O39-39]
-	_ = x[O40-40]
-	_ = x[O41-41]
-	_ = x[O42-42]
-	_ = x[O43-43]
-	_ = x[O44-44]
-	_ = x[O45-45]
-	_ = x[O46-46]
-	_ = x[O47-47]
-	_ = x[O48-48]
-	_ = x[O49-49]
-	_ = x[O50-50]
-	_ = x[O51-51]
-	_ = x[O52-52]
-	_ = x[O53-53]
-	_ = x[O54-54]
-	_ = x[O55-55]
-	_ = x[O56-56]
-	_ = x[O57-57]
-	_ = x[O58-58]
-	_ = x[O59-59]
-	_ = x[O60-60]
-	_ = x[O61-61]
-	_ = x[O62-62]
-	_ = x[O63-63]
-	_ = x[O64-64]
-	_ = x[O65-65]
-	_ = x[O66-66]
-	_ = x[O67-67]
-	_ = x[O68-68]
-	_ = x[O69-69]
-	_ = x[O70-70]
-	_ = x[O71-71]
-	_ = x[O72-72]
-	_ = x[O73-73]
-	_ = x[O74-74]
-	_ = x[O75-75]
-	_ = x[O76-76]
-	_ = x[O77-77]
-	_ = x[O78-78]
-	_ = x[O79-79]
-	_ = x[O80-80]
-	_ = x[O81-81]
-	_ = x[O82-82]
-	_ = x[O83-83]
-	_ = x[O84-84]
-	_ = x[O85-85]
-	_ = x[O86-86]
-	_ = x[O87-87]
-	_ = x[O88-88]
-	_ = x[O89-89]
-	_ = x[O90-90]
-	_ = x[O91-91]
-	_ = x[O92-92]
-	_ = x[O93-93]
-	_ = x[O94-94]
-	_ = x[O95-95]
-	_ = x[O96-96]
-	_ = x[O97-97]
-	_ = x[O98-98]
-	_ = x[O99-99]
-	_ = x[O100-100]
-	_ = x[O101-101]
-	_ = x[O102-102]
-	_ = x[O103-103]
-	_ = x[O104-104]
-	_ = x[O105-105]
-	_ = x[O106-106]
-	_ = x[O107-107]
-	_ = x[O108-108]
-	_ = x[O109-109]
-	_ = x[O110-110]
-	_ = x[O111-111]
-	_ = x[O112-112]
-	_ = x[O113-113]
-	_ = x[O114-114]
-	_ = x[O115-115]
-	_ = x[O116-116]
-	_ = x[O117-117]
-	_ = x[O118-118]
-	_ = x[O119-119]
-	_ = x[O120-120]
-	_ = x[O121-121]
-	_ = x[O122-122]
-	_ = x[O123-123]
-	_ = x[O124-124]
-	_ = x[O125-125]
-	_ = x[O126-126]
-	_ = x[O127-127]
+	_ = x[O0 - 0]
+	_ = x[O1 - 1]
+	_ = x[O2 - 2]
+	_ = x[O3 - 3]
+	_ = x[O4 - 4]
+	_ = x[O5 - 5]
+	_ = x[O6 - 6]
+	_ = x[O7 - 7]
+	_ = x[O8 - 8]
+	_ = x[O9 - 9]
+	_ = x[O10 - 10]
+	_ = x[O11 - 11]
+	_ = x[O12 - 12]
+	_ = x[O13 - 13]
+	_ = x[O14 - 14]
+	_ = x[O15 - 15]
+	_ = x[O16 - 16]
+	_ = x[O17 - 17]
+	_ = x[O18 - 18]
+	_ = x[O19 - 19]
+	_ = x[O20 - 20]
+	_ = x[O21 - 21]
+	_ = x[O22 - 22]
+	_ = x[O23 - 23]
+	_ = x[O24 - 24]
+	_ = x[O25 - 25]
+	_ = x[O26 - 26]
+	_ = x[O27 - 27]
+	_ = x[O28 - 28]
+	_ = x[O29 - 29]
+	_ = x[O30 - 30]
+	_ = x[O31 - 31]
+	_ = x[O32 - 32]
+	_ = x[O33 - 33]
+	_ = x[O34 - 34]
+	_ = x[O35 - 35]
+	_ = x[O36 - 36]
+	_ = x[O37 - 37]
+	_ = x[O38 - 38]
+	_ = x[O39 - 39]
+	_ = x[O40 - 40]
+	_ = x[O41 - 41]
+	_ = x[O42 - 42]
+	_ = x[O43 - 43]
+	_ = x[O44 - 44]
+	_ = x[O45 - 45]
+	_ = x[O46 - 46]
+	_ = x[O47 - 47]
+	_ = x[O48 - 48]
+	_ = x[O49 - 49]
+	_ = x[O50 - 50]
+	_ = x[O51 - 51]
+	_ = x[O52 - 52]
+	_ = x[O53 - 53]
+	_ = x[O54 - 54]
+	_ = x[O55 - 55]
+	_ = x[O56 - 56]
+	_ = x[O57 - 57]
+	_ = x[O58 - 58]
+	_ = x[O59 - 59]
+	_ = x[O60 - 60]
+	_ = x[O61 - 61]
+	_ = x[O62 - 62]
+	_ = x[O63 - 63]
+	_ = x[O64 - 64]
+	_ = x[O65 - 65]
+	_ = x[O66 - 66]
+	_ = x[O67 - 67]
+	_ = x[O68 - 68]
+	_ = x[O69 - 69]
+	_ = x[O70 - 70]
+	_ = x[O71 - 71]
+	_ = x[O72 - 72]
+	_ = x[O73 - 73]
+	_ = x[O74 - 74]
+	_ = x[O75 - 75]
+	_ = x[O76 - 76]
+	_ = x[O77 - 77]
+	_ = x[O78 - 78]
+	_ = x[O79 - 79]
+	_ = x[O80 - 80]
+	_ = x[O81 - 81]
+	_ = x[O82 - 82]
+	_ = x[O83 - 83]
+	_ = x[O84 - 84]
+	_ = x[O85 - 85]
+	_ = x[O86 - 86]
+	_ = x[O87 - 87]
+	_ = x[O88 - 88]
+	_ = x[O89 - 89]
+	_ = x[O90 - 90]
+	_ = x[O91 - 91]
+	_ = x[O92 - 92]
+	_ = x[O93 - 93]
+	_ = x[O94 - 94]
+	_ = x[O95 - 95]
+	_ = x[O96 - 96]
+	_ = x[O97 - 97]
+	_ = x[O98 - 98]
+	_ = x[O99 - 99]
+	_ = x[O100 - 100]
+	_ = x[O101 - 101]
+	_ = x[O102 - 102]
+	_ = x[O103 - 103]
+	_ = x[O104 - 104]
+	_ = x[O105 - 105]
+	_ = x[O106 - 106]
+	_ = x[O107 - 107]
+	_ = x[O108 - 108]
+	_ = x[O109 - 109]
+	_ = x[O110 - 110]
+	_ = x[O111 - 111]
+	_ = x[O112 - 112]
+	_ = x[O113 - 113]
+	_ = x[O114 - 114]
+	_ = x[O115 - 115]
+	_ = x[O116 - 116]
+	_ = x[O117 - 117]
+	_ = x[O118 - 118]
+	_ = x[O119 - 119]
+	_ = x[O120 - 120]
+	_ = x[O121 - 121]
+	_ = x[O122 - 122]
+	_ = x[O123 - 123]
+	_ = x[O124 - 124]
+	_ = x[O125 - 125]
+	_ = x[O126 - 126]
+	_ = x[O127 - 127]
 }
 
 const _Overflow8_name = "O_128O_127O_126O_125O_124O_123O_122O_121O_120O_119O_118O_117O_116O_115O_114O_113O_112O_111O_110O_109O_108O_107O_106O_105O_104O_103O_102O_101O_100O_99O_98O_97O_96O_95O_94O_93O_92O_91O_90O_89O_88O_87O_86O_85O_84O_83O_82O_81O_80O_79O_78O_77O_76O_75O_74O_73O_72O_71O_70O_69O_68O_67O_66O_65O_64O_63O_62O_61O_60O_59O_58O_57O_56O_55O_54O_53O_52O_51O_50O_49O_48O_47O_46O_45O_44O_43O_42O_41O_40O_39O_38O_37O_36O_35O_34O_33O_32O_31O_30O_29O_28O_27O_26O_25O_24O_23O_22O_21O_20O_19O_18O_17O_16O_15O_14O_13O_12O_11O_10O_9O_8O_7O_6O_5O_4O_3O_2O_1O0O1O2O3O4O5O6O7O8O9O10O11O12O13O14O15O16O17O18O19O20O21O22O23O24O25O26O27O28O29O30O31O32O33O34O35O36O37O38O39O40O41O42O43O44O45O46O47O48O49O50O51O52O53O54O55O56O57O58O59O60O61O62O63O64O65O66O67O68O69O70O71O72O73O74O75O76O77O78O79O80O81O82O83O84O85O86O87O88O89O90O91O92O93O94O95O96O97O98O99O100O101O102O103O104O105O106O107O108O109O110O111O112O113O114O115O116O117O118O119O120O121O122O123O124O125O126O127"
@@ -981,10 +981,10 @@ var _Overflow8_index = [...]uint16{0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55,
 
 func (i Overflow8) String() string {
 	idx := int(i) - -128
-	if i < -128 || idx >= len(_Overflow8_index)-1 {
+	if i < -128 || idx >= len(_Overflow8_index) - 1 {
 		return "Overflow8(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _Overflow8_name[_Overflow8_index[idx]:_Overflow8_index[idx+1]]
+	return _Overflow8_name[_Overflow8_index[idx]:_Overflow8_index[idx + 1]]
 }
 `
 

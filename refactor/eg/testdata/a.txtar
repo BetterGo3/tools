@@ -100,7 +100,7 @@ func example(n int) {
 	Printf("%s", x)
 
 	// Match.
-	myfmt.Fprint(os.Stderr, errors.New(x+"foo"))
+	myfmt.Fprint(os.Stderr, errors.New(x + "foo"))
 
 	// No match: though this literally matches the template,
 	// fmt doesn't resolve to a package here.
@@ -117,7 +117,7 @@ func example(n int) {
 
 	// Inner match succeeds, outer doesn't: the inner replacement
 	// has the wrong type (error not string).
-	myfmt.Errorf("%s", errors.New(x+"foo"))
+	myfmt.Errorf("%s", errors.New(x + "foo"))
 }
 -- a2/a2.go --
 package a2

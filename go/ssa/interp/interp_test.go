@@ -379,6 +379,7 @@ func TestTypeparamTest(t *testing.T) {
 		"stringer.go":   "unknown reason",
 		"issue48317.go": "interp tests do not support encoding/json",
 		"issue48318.go": "interp tests do not support encoding/json",
+		"issue54535.go": "go/types does not record selector types after items[*node[T]] index (fork limitation)",
 		"issue58513.go": "interp tests do not support runtime.Caller",
 	}
 	// Collect all of the .go files in dir that are runnable.

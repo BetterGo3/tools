@@ -43,7 +43,7 @@ func RatherStupidConditions() {
 	}
 
 	var i, j, k int
-	_ = i+1 == 1 || i+1 == 1         // want `redundant or: i\+1 == 1 \|\| i\+1 == 1`
+	_ = i+1 == 1 || i+1 == 1         // want `redundant or: i \+ 1 == 1 \|\| i \+ 1 == 1`
 	_ = i == 1 || j+1 == i || i == 1 // want `redundant or: i == 1 \|\| i == 1`
 
 	_ = i == 1 || i == 1 || f() == 1 // want `redundant or: i == 1 \|\| i == 1`
@@ -78,7 +78,7 @@ func RatherStupidConditions() {
 		j == 0 ||
 		k == 0
 
-	_ = i == 1*2*3 || i == 1*2*3 // want `redundant or: i == 1\*2\*3 \|\| i == 1\*2\*3`
+	_ = i == 1*2*3 || i == 1*2*3 // want `redundant or: i == 1 \* 2 \* 3 \|\| i == 1 \* 2 \* 3`
 
 	// These test that redundant, suspect expressions do not trigger multiple errors.
 	_ = i != 0 || i != 0 // want `redundant or: i != 0 \|\| i != 0`
@@ -105,11 +105,11 @@ func RoyallySuspectConditions() {
 
 	_ = (0 != i) || i != 1 // want `suspect or: 0 != i \|\| i != 1`
 
-	_ = i+3 != 7 || j+5 == 0 || i+3 != 9 // want `suspect or: i\+3 != 7 \|\| i\+3 != 9`
+	_ = i+3 != 7 || j+5 == 0 || i+3 != 9 // want `suspect or: i \+ 3 != 7 \|\| i \+ 3 != 9`
 
 	_ = i != 0 || j == 0 || i != 1 // want `suspect or: i != 0 \|\| i != 1`
 
-	_ = i != 0 || i != 1<<4 // want `suspect or: i != 0 \|\| i != 1<<4`
+	_ = i != 0 || i != 1<<4 // want `suspect or: i != 0 \|\| i != 1 << 4`
 
 	_ = i != 0 || j != 0
 	_ = 0 != i || 0 != j
