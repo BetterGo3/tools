@@ -630,6 +630,9 @@ func (b *typeCheckBatch) checkPackageForImport(ctx context.Context, ph *packageH
 		}
 	}
 	pkg := types.NewPackage(string(ph.localInputs.pkgPath), string(ph.localInputs.name))
+	if ph.localInputs.nilablePointers != "" {
+		pkg.SetNilablePointers(ph.localInputs.nilablePointers)
+	}
 	check := types.NewChecker(cfg, b.fset, pkg, nil)
 
 	files := make([]*ast.File, len(pgfs))
@@ -1485,6 +1488,7 @@ type typeCheckInputs struct {
 	sizes                    types.Sizes
 	depsByImpPath            map[ImportPath]PackageID
 	goVersion                string // packages.Module.GoVersion, e.g. "1.18"
+	nilablePointers          string // from go.mod nilable_pointers directive
 
 	// Used for type check diagnostics:
 	// TODO(rfindley): consider storing less data in gobDiagnostics, and
@@ -1523,6 +1527,15 @@ func (s *Snapshot) typeCheckInputs(ctx context.Context, mp *metadata.Package) (*
 		goVersion = fmt.Sprintf("1.%d", s.View().GoVersion())
 	}
 
+	nilablePointers := ""
+	if mp.Module != nil && mp.Module.GoMod != "" {
+		if fh, err := s.ReadFile(ctx, protocol.URIFromPath(mp.Module.GoMod)); err == nil {
+			if content, err := fh.Content(); err == nil {
+				nilablePointers = typesinternal.ParseNilablePointersFromMod(content)
+			}
+		}
+	}
+
 	return &typeCheckInputs{
 		id:              mp.ID,
 		pkgPath:         mp.PkgPath,
@@ -1532,6 +1545,7 @@ func (s *Snapshot) typeCheckInputs(ctx context.Context, mp *metadata.Package) (*
 		sizes:           mp.TypesSizes,
 		depsByImpPath:   mp.DepsByImpPath,
 		goVersion:       goVersion,
+		nilablePointers: nilablePointers,
 
 		supportsRelatedInformation: s.Options().RelatedInformationSupported,
 		linkTarget:                 s.Options().LinkTarget,
@@ -1625,6 +1639,9 @@ func (b *typeCheckBatch) checkPackage(ctx context.Context, fset *token.FileSet, 
 			IndexAssignCalls:   make(map[ast.Expr]*ast.CallExpr),
 			UsedImportNames:    make(map[string]bool),
 		},
+	}
+	if inputs.nilablePointers != "" {
+		pkg.types.SetNilablePointers(inputs.nilablePointers)
 	}
 
 	// Collect parsed files from the type check pass, capturing parse errors from
