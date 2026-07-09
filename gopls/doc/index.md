@@ -1,5 +1,5 @@
 ---
-title: "Gopls: The language server for Better"
+title: "Gopls: The language server for Bow"
 ---
 <!--
   This is the main landing page for gopls users.
@@ -9,7 +9,7 @@ title: "Gopls: The language server for Better"
     $ open http://localhost:6060/go.dev/gopls
 -->
 
-`gopls` is the [language server](https://langserver.org) for Better. It
+`gopls` is the [language server](https://langserver.org) for Bow. It
 provides a wide variety of [IDE features](features/) to any
 [LSP](https://microsoft.github.io/language-server-protocol/)-compatible
 editor.
