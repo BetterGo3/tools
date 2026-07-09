@@ -1,0 +1,39 @@
+Bow Tools (gopls and related) — Third-Party Notices
+====================================================
+
+This distribution is derived from golang.org/x/tools and includes Bow-specific
+modifications (including a forked golang.org/x/mod with nilable_pointers support).
+
+Go Authors (BSD 3-Clause)
+-------------------------
+Copyright 2009 The Go Authors.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+  * Neither the name of Google LLC nor the names of its contributors may be
+    used to endorse or promote products derived from this software without
+    specific prior written permission.
+
+See LICENSE in this directory for the full BSD 3-Clause text.
+
+Forked golang.org/x/mod
+-----------------------
+The directory golang.org/x/mod/ is a fork of golang.org/x/mod with Bow
+extensions (nilable_pointers go.mod directive). It retains the Go Authors
+copyright and BSD 3-Clause license from the upstream module.
+
+Other Dependencies
+------------------
+Module dependencies are listed in go.mod and gopls/go.mod. Each module's
+license can be found in the module source or at pkg.go.dev.
+
+Binary Distributions
+--------------------
+When distributing prebuilt binaries (gopls, etc.) built from this tree,
+include this file alongside the binaries together with LICENSE.

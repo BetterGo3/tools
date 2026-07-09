@@ -12,3 +12,5 @@ require (
 )
 
 require golang.org/x/sys v0.46.0 // indirect
+
+replace golang.org/x/mod => ./golang.org/x/mod

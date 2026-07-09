@@ -37,3 +37,5 @@ require (
 )
 
 replace golang.org/x/tools => ..
+
+replace golang.org/x/mod => ../golang.org/x/mod
