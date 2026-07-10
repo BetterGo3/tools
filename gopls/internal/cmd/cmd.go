@@ -46,15 +46,16 @@ type Application struct {
 	// Embed the basic profiling flags supported by the tool package
 	tool.Profile
 
-	// serve holds the state needed by the gopls serve subcommand.
-	// This is in this struct due to historical reasons.
-	// `flag:"-"` tells the reflection-based flag parser to ignore this field;
-	// instead, the dispatch function explicitly registers and parses serve flags.
-	// TODO: Remove serve from Application.
-	serve Serve `flag:"-"`
+	// We include the server configuration directly for now, so the flags work
+	// even without the verb.
+	// TODO: Remove this when we stop allowing the serve verb by default.
+	Serve Serve
 
 	// the options configuring function to invoke when building a server
 	options func(*settings.Options)
+
+	// Support for remote LSP server.
+	Remote string `flag:"remote" help:"forward all commands to a remote lsp specified by this flag. With no special prefix, this is assumed to be a TCP address. If prefixed by 'unix;', the subsequent address is assumed to be a unix domain socket. If 'auto', or prefixed by 'auto;', the remote address is automatically resolved based on the executing environment."`
 
 	// Verbose enables verbose logging.
 	Verbose bool `flag:"v,verbose" help:"verbose output"`
@@ -90,42 +91,6 @@ type EditFlags struct {
 	List     bool `flag:"l,list" help:"display names of edited files"`
 }
 
-// CommonFlags defines the flags that apply to all gopls subcommands.
-// This is distinct from Application, which contains flags that apply to the
-// primary gopls command itself (such as profiling or verbose output).
-type CommonFlags struct {
-	RemoteFlag // most subcommands support -remote.
-}
-
-// RemoteFlag defines the set of flags for the forward mode.
-type RemoteFlag struct {
-	Remote string `flag:"remote" help:"forward all commands to a remote lsp specified by this flag. With no special prefix, this is assumed to be a TCP address. If prefixed by 'unix;', the subsequent address is assumed to be a unix domain socket. If 'auto', or prefixed by 'auto;', the remote address is automatically resolved based on the executing environment."`
-
-	// The following flags are used with -remote=auto mode.
-	RemoteDebug         string        `flag:"remote.debug" help:"when used with -remote=auto, the -debug value used to start the daemon"`
-	RemoteListenTimeout time.Duration `flag:"remote.listen.timeout" help:"when used with -remote=auto, the -listen.timeout value used to start the daemon (default 1m0s)"`
-	RemoteLogfile       string        `flag:"remote.logfile" help:"when used with -remote=auto, the -logfile value used to start the daemon"`
-}
-
-func (r *RemoteFlag) remoteArgs(network, address string) []string {
-	args := []string{
-		"serve",
-		"-listen", fmt.Sprintf(`%s;%s`, network, address),
-	}
-	if r.RemoteDebug != "" {
-		args = append(args, "-debug", r.RemoteDebug)
-	}
-	timeout := r.RemoteListenTimeout
-	if timeout == 0 {
-		timeout = 1 * time.Minute
-	}
-	args = append(args, "-listen.timeout", timeout.String())
-	if r.RemoteLogfile != "" {
-		args = append(args, "-logfile", r.RemoteLogfile)
-	}
-	return args
-}
-
 func (app *Application) verbose() bool {
 	return app.Verbose || app.VeryVerbose
 }
@@ -133,11 +98,11 @@ func (app *Application) verbose() bool {
 // New returns a new Application ready to run.
 func New() *Application {
 	app := &Application{
-		serve: Serve{
-			RemoteFlag: RemoteFlag{},
+		Serve: Serve{
+			RemoteListenTimeout: 1 * time.Minute,
 		},
 	}
-	app.serve.app = app
+	app.Serve.app = app
 	return app
 }
 
@@ -167,7 +132,7 @@ features can also be accessed via the gopls command-line interface.
 
 For documentation of all its features, see:
 
-   https://github.com/golang/tools/blob/master/gopls/doc/features
+   https://go.dev/gopls/features
 
 Usage:
   gopls help [<subject>]
@@ -274,7 +239,7 @@ func (app *Application) Run(ctx context.Context, args ...string) error {
 	ctx = debug.WithInstance(ctx, app.OTel)
 	if len(args) == 0 {
 		s := flag.NewFlagSet(app.Name(), flag.ExitOnError)
-		return tool.Run(ctx, s, &app.serve, args)
+		return tool.Run(ctx, s, &app.Serve, args)
 	}
 	command, args := args[0], args[1:]
 	for _, c := range app.Commands() {
@@ -299,7 +264,7 @@ func (app *Application) Commands() []tool.Application {
 
 func (app *Application) mainCommands() []tool.Application {
 	return []tool.Application{
-		&app.serve,
+		&app.Serve,
 		&version{app: app},
 		&help{app: app},
 		&apiJSON{app: app},
@@ -321,15 +286,13 @@ func (app *Application) featureCommands() []tool.Application {
 		&codelens{app: app},
 		&definition{app: app},
 		&execute{app: app},
-		&fix{app: app}, // (non-functional)
 		&foldingRanges{app: app},
 		&format{app: app},
 		&headlessMCP{app: app},
 		&highlight{app: app},
 		&implementation{app: app},
 		&imports{app: app},
-		newRemote(app, ""),
-		newRemote(app, "inspect"),
+		newRemote(app),
 		&links{app: app},
 		&prepareRename{app: app},
 		&references{app: app},
@@ -344,7 +307,7 @@ func (app *Application) featureCommands() []tool.Application {
 }
 
 // connect creates and initializes a new in-process gopls LSP session.
-func (app *Application) connect(ctx context.Context, remote RemoteFlag) (*client, *cache.Session, error) {
+func (app *Application) connect(ctx context.Context) (*client, *cache.Session, error) {
 	root, err := os.Getwd()
 	if err != nil {
 		return nil, nil, fmt.Errorf("finding workdir: %v", err)
@@ -355,14 +318,14 @@ func (app *Application) connect(ctx context.Context, remote RemoteFlag) (*client
 		svr  protocol.Server
 		sess *cache.Session
 	)
-	if remote.Remote == "" {
+	if app.Remote == "" {
 		// local
 		sess = cache.NewSession(ctx, cache.New(nil))
 		svr = server.New(sess, client, options)
 		ctx = protocol.WithClient(ctx, client)
 	} else {
 		// remote
-		netConn, err := lsprpc.ConnectToRemote(ctx, remote.Remote)
+		netConn, err := lsprpc.ConnectToRemote(ctx, app.Remote)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -501,6 +464,10 @@ func (cli *client) LogMessage(ctx context.Context, p *protocol.LogMessageParams)
 	case protocol.Log:
 		if cli.app.verbose() {
 			log.Print("Log:", p.Message)
+		}
+	case protocol.Debug:
+		if cli.app.verbose() {
+			log.Print("Debug:", p.Message)
 		}
 	default:
 		if cli.app.verbose() {
@@ -711,7 +678,7 @@ func (cli *client) PublishDiagnostics(ctx context.Context, p *protocol.PublishDi
 		if desc := d.CodeDescription; desc != nil {
 			codeHref = desc.Href
 		}
-		k := key{d.Range, d.Severity, d.Code, codeHref, d.Source, d.Message}
+		k := key{d.Range, d.Severity, d.Code, codeHref, d.Source, d.MessageString()}
 		if !seen[k] {
 			seen[k] = true
 			out = append(out, d)
@@ -962,18 +929,4 @@ func pointPosition(m *protocol.Mapper, p point) (protocol.Position, error) {
 		return m.OffsetPosition(p.Offset())
 	}
 	return protocol.Position{}, fmt.Errorf("point has neither offset nor line/column")
-}
-
-// TODO(adonovan): delete in 2025.
-type fix struct{ app *Application }
-
-func (*fix) Name() string       { return "fix" }
-func (cmd *fix) Parent() string { return cmd.app.Name() }
-func (*fix) Usage() string      { return "" }
-func (*fix) ShortHelp() string  { return "apply suggested fixes (obsolete)" }
-func (*fix) DetailedHelp(flags *flag.FlagSet) {
-	fmt.Fprintf(flags.Output(), `No longer supported; use "gopls codeaction" instead.`)
-}
-func (*fix) Run(ctx context.Context, args ...string) error {
-	return tool.CommandLineErrorf(`no longer supported; use "gopls codeaction" instead`)
 }

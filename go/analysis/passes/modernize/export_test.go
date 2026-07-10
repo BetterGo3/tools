@@ -7,6 +7,8 @@
 package modernize
 
 var (
-	SlicesBackwardAnalyzer = slicesBackwardAnalyzer
-	UnsafeFuncsAnalyzer    = unsafeFuncsAnalyzer
+	ImportCommentAnalyzer     = importCommentAnalyzer
+	ReflectTypeAssertAnalyzer = reflectTypeAssertAnalyzer
+	SlicesBackwardAnalyzer    = slicesBackwardAnalyzer
+	UnsafeFuncsAnalyzer       = unsafeFuncsAnalyzer
 )

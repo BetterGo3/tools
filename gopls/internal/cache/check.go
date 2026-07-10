@@ -26,6 +26,7 @@ import (
 	"golang.org/x/mod/module"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/tools/go/ast/astutil"
+	"golang.org/x/tools/go/types/objectpath"
 	"golang.org/x/tools/gopls/internal/bloom"
 	"golang.org/x/tools/gopls/internal/cache/metadata"
 	"golang.org/x/tools/gopls/internal/cache/parsego"
@@ -70,6 +71,7 @@ type typeCheckBatch struct {
 	syntaxPackages   *futureCache[PackageID, *Package]       // transient cache of in-progress syntax futures
 	importPackages   *futureCache[PackageID, *types.Package] // persistent cache of imports
 	gopackagesdriver bool                                    // for bug reporting: were packages loaded with a driver?
+	encoder          objectpath.Encoder                      // to amortize encoding across the batch
 }
 
 // addHandles is called by each goroutine joining the type check batch, to
@@ -423,7 +425,7 @@ func (b *typeCheckBatch) getPackage(ctx context.Context, ph *packageHandle) (*Pa
 		}
 
 		// Update caches.
-		go storePackageResults(ctx, ph, p) // ...and write all packages to disk
+		go storePackageResults(ctx, ph, p, &b.encoder) // ...and write all packages to disk
 		return p, nil
 	})
 }
@@ -431,10 +433,10 @@ func (b *typeCheckBatch) getPackage(ctx context.Context, ph *packageHandle) (*Pa
 // storePackageResults serializes and writes information derived from p to the
 // file cache.
 // The context is used only for logging; cancellation does not affect the operation.
-func storePackageResults(ctx context.Context, ph *packageHandle, p *Package) {
+func storePackageResults(ctx context.Context, ph *packageHandle, p *Package, enc *objectpath.Encoder) {
 	toCache := map[string][]byte{
-		xrefsKind:       p.pkg.xrefs().Encode(),
-		methodSetsKind:  p.pkg.methodsets().Encode(),
+		xrefsKind:       p.pkg.xrefs(enc).Encode(),
+		methodSetsKind:  p.pkg.methodsets(enc).Encode(),
 		testsKind:       p.pkg.tests().Encode(),
 		diagnosticsKind: encodeDiagnostics(p.pkg.diagnostics),
 	}
@@ -1270,7 +1272,7 @@ func (b *packageHandleBuilder) evaluatePackageHandle(ctx context.Context, n *han
 		ph.localInputs = inputs
 
 	checkOpen:
-		for _, files := range [][]file.Handle{inputs.goFiles, inputs.compiledGoFiles} {
+		for _, files := range [][]file.Handle{inputs.goFiles, inputs.compiledGoFiles, inputs.asmFiles} {
 			for _, fh := range files {
 				if _, ok := fh.(*overlay); ok {
 					ph.isOpen = true
@@ -1484,8 +1486,8 @@ type typeCheckInputs struct {
 	// Used for type checking:
 	pkgPath                  PackagePath
 	name                     PackageName
-	goFiles, compiledGoFiles []file.Handle
-	sizes                    types.Sizes
+	goFiles, compiledGoFiles, asmFiles []file.Handle
+	sizes                              types.Sizes
 	depsByImpPath            map[ImportPath]PackageID
 	goVersion                string // packages.Module.GoVersion, e.g. "1.18"
 	nilablePointers          string // from go.mod nilable_pointers directive
@@ -1518,6 +1520,10 @@ func (s *Snapshot) typeCheckInputs(ctx context.Context, mp *metadata.Package) (*
 	if err != nil {
 		return nil, err
 	}
+	asmFiles, err := readFiles(ctx, s, mp.AsmFiles)
+	if err != nil {
+		return nil, err
+	}
 
 	goVersion := ""
 	if mp.Module != nil && mp.Module.GoVersion != "" {
@@ -1542,6 +1548,7 @@ func (s *Snapshot) typeCheckInputs(ctx context.Context, mp *metadata.Package) (*
 		name:            mp.Name,
 		goFiles:         goFiles,
 		compiledGoFiles: compiledGoFiles,
+		asmFiles:        asmFiles,
 		sizes:           mp.TypesSizes,
 		depsByImpPath:   mp.DepsByImpPath,
 		goVersion:       goVersion,
@@ -1593,6 +1600,10 @@ func localPackageKey(inputs *typeCheckInputs) file.Hash {
 	}
 	fmt.Fprintf(hasher, "goFiles: %d\n", len(inputs.goFiles))
 	for _, fh := range inputs.goFiles {
+		fmt.Fprintln(hasher, fh.Identity())
+	}
+	fmt.Fprintf(hasher, "asmFiles: %d\n", len(inputs.asmFiles))
+	for _, fh := range inputs.asmFiles {
 		fmt.Fprintln(hasher, fh.Identity())
 	}
 
@@ -1659,6 +1670,10 @@ func (b *typeCheckBatch) checkPackage(ctx context.Context, fset *token.FileSet, 
 		if pgf.ParseErr != nil {
 			pkg.parseErrors = append(pkg.parseErrors, pgf.ParseErr)
 		}
+	}
+	pkg.asmFiles, err = parseAsmFiles(ctx, inputs.asmFiles...)
+	if err != nil {
+		return nil, err
 	}
 
 	// Use the default type information for the unsafe package.

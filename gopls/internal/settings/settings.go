@@ -270,6 +270,10 @@ type UIOptions struct {
 	// RenameMovesSubpackages enables Rename operations on packages to
 	// move subdirectories of the target package.
 	RenameMovesSubpackages bool `status:"experimental"`
+
+	// MoveType enables producing Move Type codeactions. The implementation
+	// is unfinished so we use this setting to gate its use.
+	MoveType bool `status:"experimental"`
 }
 
 // A CodeLensSource identifies an (algorithmic) source of code lenses.
@@ -694,6 +698,25 @@ type UserOptions struct {
 	// Also, this parameter limits file contents; disk block usage
 	// as measured by du(1) may be significantly higher.
 	MaxFileCacheBytes int64 `status:"experimental"`
+
+	// MemoryLimit sets a soft memory limit (in bytes) for the gopls process, via
+	// runtime/debug.SetMemoryLimit. If non-positive (the default), no limit is set.
+	//
+	// On large workspaces, a single edit that invalidates many
+	// packages (for example a syntax error in a widely-imported
+	// package) can make the heap briefly grow well above the
+	// steady-state working set before the garbage collector
+	// catches up, spiking memory and, on memory-constrained
+	// machines, causing swapping. A soft limit makes the GC work
+	// harder to stay near the limit, trading some CPU for a lower
+	// memory peak.
+	//
+	// The limit is soft and may be exceeded. Set it comfortably above the
+	// steady-state working set, as too low a value causes excessive GC.
+	//
+	// Unlike the GOMEMLIMIT environment variable, this setting is
+	// strictly numeric; SI suffixes are not permitted.
+	MemoryLimit int64 `status:"experimental"`
 
 	// VerboseOutput enables additional debug logging.
 	VerboseOutput bool `status:"debug"`
@@ -1332,6 +1355,9 @@ func (o *Options) setOne(name string, value any) (applied []CounterPath, _ error
 	case "maxFileCacheBytes":
 		return setInt64(&o.MaxFileCacheBytes, value)
 
+	case "memoryLimit":
+		return setInt64(&o.MemoryLimit, value)
+
 	case "verboseOutput":
 		return setBool(&o.VerboseOutput, value)
 
@@ -1440,6 +1466,9 @@ func (o *Options) setOne(name string, value any) (applied []CounterPath, _ error
 
 	case "fileWatcher":
 		return setEnum(&o.FileWatcher, value, FileWatcherOff, FileWatcherFSNotify, FileWatcherPoll)
+
+	case "moveType":
+		return setBool(&o.MoveType, value)
 
 	// deprecated and renamed settings
 	//

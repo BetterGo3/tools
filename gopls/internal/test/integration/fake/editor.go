@@ -371,6 +371,7 @@ func clientCapabilities(cfg EditorConfig) (protocol.ClientCapabilities, error) {
 	capabilities.TextDocument.SemanticTokens.Requests.Full = &protocol.Or_ClientSemanticTokensRequestOptions_full{Value: true}
 	capabilities.Window.WorkDoneProgress = true                                                // support window/workDoneProgress
 	capabilities.Window.ShowDocument = &protocol.ShowDocumentClientCapabilities{Support: true} // support window/showDocument
+	capabilities.TextDocument.SemanticTokens.DynamicRegistration = true
 	capabilities.TextDocument.SemanticTokens.TokenTypes = []string{
 		"namespace", "type", "class", "enum", "interface",
 		"struct", "typeParameter", "parameter", "variable", "property", "enumMember",
@@ -982,10 +983,13 @@ func (e *Editor) RefactorRewrite(ctx context.Context, loc protocol.Location) err
 // ApplyQuickFixes requests and performs the quickfix codeAction.
 func (e *Editor) ApplyQuickFixes(ctx context.Context, loc protocol.Location, diagnostics []protocol.Diagnostic) error {
 	applied, err := e.applyCodeActions(ctx, loc, diagnostics, protocol.SourceFixAll, protocol.QuickFix)
+	if err != nil {
+		return err
+	}
 	if applied == 0 {
 		return fmt.Errorf("no quick fixes were applied")
 	}
-	return err
+	return nil
 }
 
 // ApplyCodeAction applies the given code action.
@@ -1854,6 +1858,10 @@ func (e *Editor) interpretTokens(m *protocol.Mapper, x []uint32) ([]SemanticToke
 		// Advance by 'length' UTF-16 code units.
 		end := start + utf16IndexToBytes(m.Content[start:], int(length16))
 		text := string(m.Content[start:end])
+
+		if t >= uint32(len(legend.TokenTypes)) {
+			return nil, fmt.Errorf("tokenType index %d is out of bounds for SemanticTokensLegend.TokenTypes with length %d", t, len(legend.TokenTypes))
+		}
 
 		ans = append(ans, SemanticToken{
 			Token:     text,

@@ -20,47 +20,31 @@ import (
 type remote struct {
 	app *Application
 	subcommands
-
-	// For backward compatibility, allow aliasing this command (it was previously
-	// called 'inspect').
-	//
-	// TODO(rFindley): delete this after allowing some transition time in case
-	//                 there were any users of 'inspect' (I suspect not).
-	alias string
 }
 
-func newRemote(app *Application, alias string) *remote {
+func newRemote(app *Application) *remote {
 	return &remote{
 		app: app,
 		subcommands: subcommands{
 			&listSessions{app: app},
 			&startDebugging{app: app},
 		},
-		alias: alias,
 	}
 }
 
 func (r *remote) Name() string {
-	if r.alias != "" {
-		return r.alias
-	}
 	return "remote"
 }
 
 func (r *remote) Parent() string { return r.app.Name() }
 
 func (r *remote) ShortHelp() string {
-	short := "interact with the gopls daemon"
-	if r.alias != "" {
-		short += " (deprecated: use 'remote')"
-	}
-	return short
+	return "interact with the gopls daemon"
 }
 
 // listSessions is an inspect subcommand to list current sessions.
 type listSessions struct {
 	app *Application
-	RemoteFlag
 }
 
 func (c *listSessions) Name() string   { return "sessions" }
@@ -75,13 +59,13 @@ Examples:
 
 1) list sessions for the default daemon:
 
-$ gopls remote sessions -remote=auto
+$ gopls -remote=auto remote sessions
 or just
 $ gopls remote sessions
 
 2) list sessions for a specific daemon:
 
-$ gopls remote sessions -remote=localhost:8082
+$ gopls -remote=localhost:8082 remote sessions
 `
 
 func (c *listSessions) DetailedHelp(f *flag.FlagSet) {
@@ -90,7 +74,7 @@ func (c *listSessions) DetailedHelp(f *flag.FlagSet) {
 }
 
 func (c *listSessions) Run(ctx context.Context, args ...string) error {
-	remote := c.Remote
+	remote := c.app.Remote
 	if remote == "" {
 		remote = "auto"
 	}
@@ -108,7 +92,6 @@ func (c *listSessions) Run(ctx context.Context, args ...string) error {
 
 type startDebugging struct {
 	app *Application
-	RemoteFlag
 }
 
 func (c *startDebugging) Name() string  { return "debug" }
@@ -122,13 +105,13 @@ Examples:
 
 1) start a debug server for the default daemon, on an arbitrary port:
 
-$ gopls remote debug -remote=auto
+$ gopls -remote=auto remote debug
 or just
 $ gopls remote debug
 
 2) start for a specific daemon, on a specific port:
 
-$ gopls remote debug -remote=localhost:8082 localhost:8083
+$ gopls -remote=localhost:8082 remote debug localhost:8083
 `
 
 func (c *startDebugging) DetailedHelp(f *flag.FlagSet) {
@@ -141,7 +124,7 @@ func (c *startDebugging) Run(ctx context.Context, args ...string) error {
 		fmt.Fprintln(os.Stderr, c.Usage())
 		return errors.New("invalid usage")
 	}
-	remote := c.Remote
+	remote := c.app.Remote
 	if remote == "" {
 		remote = "auto"
 	}
