@@ -77,16 +77,16 @@ func (d *Diagnostic) String() string {
 func (d *Diagnostic) Hash() file.Hash {
 	h := sha256.New()
 	for _, t := range d.Tags {
-		fmt.Fprintf(h, "tag: %s\n", t)
+		fmt.Fprintf(h, "tag: %v\n", t)
 	}
 	for _, r := range d.Related {
-		fmt.Fprintf(h, "related: %s %s %s\n", r.Location.URI, r.Message, r.Location.Range)
+		fmt.Fprintf(h, "related: %s %s %v\n", r.Location.URI, r.Message, r.Location.Range)
 	}
 	fmt.Fprintf(h, "code: %s\n", d.Code)
 	fmt.Fprintf(h, "codeHref: %s\n", d.CodeHref)
 	fmt.Fprintf(h, "message: %s\n", d.Message)
-	fmt.Fprintf(h, "range: %s\n", d.Range)
-	fmt.Fprintf(h, "severity: %s\n", d.Severity)
+	fmt.Fprintf(h, "range: %v\n", d.Range)
+	fmt.Fprintf(h, "severity: %v\n", d.Severity)
 	fmt.Fprintf(h, "source: %s\n", d.Source)
 	if d.BundledFixes != nil {
 		fmt.Fprintf(h, "fixes: %s\n", *d.BundledFixes)
